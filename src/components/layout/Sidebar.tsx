@@ -13,9 +13,14 @@ import {
   BarChart3,
   FileText,
   Wallet,
+  Printer,
+  Lock,
+  Sun,
+  Moon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTheme } from "@/contexts/ThemeContext";
 
 const navGroups = [
   {
@@ -23,6 +28,7 @@ const navGroups = [
     items: [
       { label: "Projeler", href: "/projeler", icon: FolderOpen },
       { label: "Görevler", href: "/gorevler", icon: CheckSquare },
+      { label: "Ozalit Hizmetleri", href: "/ozalit", icon: Printer },
     ],
   },
   {
@@ -44,11 +50,18 @@ const navGroups = [
       { label: "Kişiler", href: "/kisiler", icon: Users },
     ],
   },
+  {
+    label: "ÖZEL",
+    items: [
+      { label: "Tufan Özel İşler", href: "/tufan", icon: Lock },
+    ],
+  },
 ];
 
 export function Sidebar() {
   const pathname = usePathname();
   const { user, logOut } = useAuth();
+  const { theme, toggleTheme } = useTheme();
 
   return (
     <aside className="flex h-screen w-60 flex-col bg-neutral-900 text-white shrink-0">
@@ -130,6 +143,13 @@ export function Sidebar() {
               {user?.email}
             </p>
           </div>
+          <button
+            onClick={toggleTheme}
+            title={theme === "dark" ? "Açık Tema" : "Koyu Tema"}
+            className="shrink-0 p-1.5 rounded-lg text-neutral-400 hover:text-yellow-400 hover:bg-neutral-800 transition-colors"
+          >
+            {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+          </button>
           <button
             onClick={logOut}
             title="Çıkış Yap"

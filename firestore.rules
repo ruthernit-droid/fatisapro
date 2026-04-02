@@ -42,6 +42,14 @@ service cloud.firestore {
       allow read, write: if isAuthenticated();
     }
 
+    match /ozalitJobs/{id} {
+      allow read, write: if isAuthenticated();
+    }
+
+    match /tufanTransactions/{id} {
+      allow read, write: if isAuthenticated();
+    }
+
     match /app/{docId} {
       allow read, write: if isAuthenticated();
     }

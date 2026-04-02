@@ -212,6 +212,65 @@ export interface Quote {
 }
 
 // â”€â”€â”€ AYARLAR â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+// --- OZALIT ISLERI ---
+export type OzalitSize = "A0" | "A1" | "A2" | "A3" | "A4" | "other";
+export type OzalitServiceType = "print" | "copy" | "scan" | "binding" | "laminate" | "other";
+
+export interface OzalitJob {
+  id: string;
+  clientId?: string;
+  clientName?: string;
+  description: string;
+  serviceType: OzalitServiceType;
+  paperSize: OzalitSize;
+  copies: number;
+  unitPrice: number;
+  totalAmount: number;
+  isPaid: boolean;
+  paidDate?: string;
+  date: Date;
+  notes?: string;
+  syncToTransactions: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export const OZALIT_SERVICE_LABELS: Record<OzalitServiceType, string> = {
+  print: "Baski", copy: "Kopya", scan: "Tarama",
+  binding: "Cilt", laminate: "Laminasyon", other: "Diger",
+};
+
+export const OZALIT_SIZE_LABELS: Record<OzalitSize, string> = {
+  A0: "A0", A1: "A1", A2: "A2", A3: "A3", A4: "A4", other: "Diger",
+};
+
+// --- TUFAN OZEL ISLER ---
+export type TufanTransactionType = "income" | "expense";
+export type TufanTransactionCategory = "receivable" | "payable" | "payment" | "collection" | "other";
+
+export interface TufanTransaction {
+  id: string;
+  personId?: string;
+  personName?: string;
+  type: TufanTransactionType;
+  category: TufanTransactionCategory;
+  amount: number;
+  description: string;
+  date: Date;
+  dueDate?: Date;
+  isPaid: boolean;
+  paidDate?: Date;
+  notes?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export const TUFAN_CATEGORY_LABELS: Record<TufanTransactionCategory, string> = {
+  receivable: "Alacak", payable: "Verecek", payment: "Yapilan Odeme",
+  collection: "Tahsilat", other: "Diger",
+};
+
 export interface CompanySettings {
   name: string;
   logoUrl?: string;

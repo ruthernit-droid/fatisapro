@@ -3,8 +3,9 @@
 import { useEffect, useState } from "react";
 import { getTransactions } from "@/lib/firestore/transactions";
 import { getProjects } from "@/lib/firestore/projects";
-import { Transaction, Project, TRANSACTION_CATEGORY_LABELS } from "@/types";
-import { BarChart3, TrendingUp, TrendingDown, FolderOpen, DollarSign } from "lucide-react";
+import { getOzalitJobs } from "@/lib/firestore/ozalitJobs";
+import { Transaction, Project, OzalitJob, TRANSACTION_CATEGORY_LABELS } from "@/types";
+import { BarChart3, TrendingUp, TrendingDown, FolderOpen, DollarSign, Printer } from "lucide-react";
 import toast from "react-hot-toast";
 
 function formatMoney(n: number) {
@@ -14,18 +15,21 @@ function formatMoney(n: number) {
 export default function RaporlarPage() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
+  const [ozalitJobs, setOzalitJobs] = useState<OzalitJob[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    Promise.all([getTransactions(), getProjects()])
-      .then(([t, p]) => { setTransactions(t); setProjects(p); })
+    Promise.all([getTransactions(), getProjects(), getOzalitJobs()])
+      .then(([t, p, o]) => { setTransactions(t); setProjects(p); setOzalitJobs(o); })
       .catch(() => toast.error("Raporlar yüklenemedi"))
       .finally(() => setLoading(false));
   }, []);
 
   const totalIncome = transactions.filter((t) => t.type === "income").reduce((s, t) => s + t.amount, 0);
   const totalExpense = transactions.filter((t) => t.type === "expense").reduce((s, t) => s + t.amount, 0);
-  const profit = totalIncome - totalExpense;
+  const ozalitIncome = ozalitJobs.filter((j) => !j.syncToTransactions).reduce((s, j) => s + (j.isPaid ? j.totalAmount : 0), 0);
+  const ozalitPending = ozalitJobs.filter((j) => !j.isPaid).reduce((s, j) => s + j.totalAmount, 0);
+  const profit = totalIncome + ozalitIncome - totalExpense;
 
   // Kategoriye göre gider özeti
   const expenseByCategory = transactions
@@ -99,6 +103,36 @@ export default function RaporlarPage() {
               </p>
             </div>
           </div>
+
+          {/* Ozalit KPI */}
+          {ozalitJobs.length > 0 && (
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="rounded-xl border border-teal-200 bg-teal-50 p-5 col-span-1 sm:col-span-1">
+                <div className="flex items-center gap-2 mb-2">
+                  <Printer className="h-4 w-4 text-teal-600" />
+                  <span className="text-xs font-medium text-teal-700">Ozalit Geliri (Tahsil)</span>
+                </div>
+                <p className="text-2xl font-bold text-teal-700">{formatMoney(ozalitIncome)}</p>
+              </div>
+              <div className="rounded-xl border border-orange-200 bg-orange-50 p-5">
+                <div className="flex items-center gap-2 mb-2">
+                  <Printer className="h-4 w-4 text-orange-600" />
+                  <span className="text-xs font-medium text-orange-700">Ozalit Bekleyen</span>
+                </div>
+                <p className="text-2xl font-bold text-orange-700">{formatMoney(ozalitPending)}</p>
+              </div>
+              <div className="rounded-xl border border-neutral-200 bg-white p-5">
+                <div className="flex items-center gap-2 mb-2">
+                  <Printer className="h-4 w-4 text-neutral-500" />
+                  <span className="text-xs font-medium text-neutral-600">Ozalit İş Sayısı</span>
+                </div>
+                <p className="text-2xl font-bold text-neutral-800">{ozalitJobs.length}</p>
+                <p className="text-xs text-neutral-400 mt-1">
+                  {ozalitJobs.filter(j => j.isPaid).length} tahsil edildi
+                </p>
+              </div>
+            </div>
+          )}
 
           {/* Income by Category */}
           {Object.keys(incomeByCategory).length > 0 && (

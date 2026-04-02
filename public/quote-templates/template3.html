@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mimarlık Teklif — Şablon 3: Modern Geometric</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{--a1:#059669;--a2:#10b981;--a3:#d1fae5;--dark:#111827;--mid:#374151;--muted:#6b7280;--border:#f3f4f6;--bg:#f9fafb;--card:#fff}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--bg);color:var(--dark);font-family:'Space Grotesk',sans-serif;font-size:13px}
+  #sp{position:fixed;top:0;right:0;bottom:0;width:290px;background:#fff;border-left:2px solid var(--border);padding:24px 20px;overflow-y:auto;z-index:100;box-shadow:-4px 0 20px rgba(0,0,0,.06)}
+  .st{font-size:16px;color:var(--dark);margin-bottom:18px;font-weight:700;display:flex;align-items:center;gap:8px}
+  .st::before{content:'';display:inline-block;width:4px;height:18px;background:var(--a1);border-radius:2px}
+  .ss{margin-bottom:16px} .sl{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;font-weight:600}
+  .lau{border:2px dashed #e5e7eb;border-radius:10px;padding:14px;text-align:center;cursor:pointer;position:relative;transition:border-color .2s}
+  .lau:hover{border-color:var(--a1)} .lau input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%}
+  #lp{max-height:44px;max-width:150px;object-fit:contain;display:none}
+  .tr2{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid #f3f4f6}
+  .tr2:last-child{border-bottom:none} .tn{font-size:11px;color:var(--muted)}
+  .tg{width:34px;height:18px;background:#e5e7eb;border-radius:9px;cursor:pointer;position:relative;transition:.2s}
+  .tg.on{background:var(--a1)} .tg::after{content:'';position:absolute;width:12px;height:12px;background:#fff;border-radius:50%;top:3px;left:3px;transition:.2s}
+  .tg.on::after{left:19px}
+  .fg{margin-bottom:10px} .fg label{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:4px;font-weight:600}
+  .fg input{width:100%;background:var(--bg);border:1.5px solid #e5e7eb;color:var(--dark);padding:7px 10px;font-family:'Space Grotesk',sans-serif;font-size:12px;border-radius:8px;outline:none}
+  .fg input:focus{border-color:var(--a1)}
+  .bp{width:100%;border:none;padding:11px;font-family:'Space Grotesk',sans-serif;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;border-radius:8px;font-weight:700;margin-top:6px}
+  .bp-print{background:var(--a1);color:#fff} .bp-print:hover{background:#047857}
+  .bp-hide{background:var(--bg);border:1.5px solid #e5e7eb;color:var(--muted)} .bp-hide:hover{border-color:var(--a1);color:var(--a1)}
+  #proposal{margin-right:290px;min-height:100vh}
+  .cover{min-height:100vh;display:flex;flex-direction:column;page-break-after:always;background:var(--dark);color:#f9fafb;overflow:hidden;position:relative}
+  .cover-geo1{position:absolute;top:-60px;right:-60px;width:280px;height:280px;border:2px solid rgba(16,185,129,.2);border-radius:50%}
+  .cover-geo2{position:absolute;top:-30px;right:-30px;width:200px;height:200px;border:2px solid rgba(16,185,129,.15);border-radius:50%}
+  .cover-geo3{position:absolute;bottom:60px;left:60px;width:120px;height:120px;background:rgba(5,150,105,.06);border-radius:50%}
+  .ch{display:flex;justify-content:space-between;align-items:center;padding:40px 60px;position:relative;z-index:2}
+  .cla{height:44px;display:flex;align-items:center} .cla img{max-height:44px;max-width:170px;object-fit:contain}
+  .fnc{font-size:15px;color:var(--a2);letter-spacing:3px;text-transform:uppercase;font-weight:600}
+  .cdt{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--a2);border:1px solid rgba(16,185,129,.3);padding:5px 12px;border-radius:20px}
+  .cb{flex:1;display:flex;flex-direction:column;justify-content:center;padding:40px 60px 60px;position:relative;z-index:2}
+  .clbl{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--a2);margin-bottom:12px;font-weight:600}
+  .cpn{font-size:clamp(40px,5.5vw,66px);font-weight:700;line-height:1.05;margin-bottom:24px;letter-spacing:-1px}
+  .cpn span{color:var(--a2)}
+  .cdv{display:flex;gap:4px;margin-bottom:28px}
+  .cdv-bar{height:3px;border-radius:2px} .cdv-bar:nth-child(1){width:60px;background:var(--a1)} .cdv-bar:nth-child(2){width:20px;background:rgba(16,185,129,.4)} .cdv-bar:nth-child(3){width:8px;background:rgba(16,185,129,.2)}
+  .cm{display:flex;gap:40px;flex-wrap:wrap}
+  .cmi label{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,.4);display:block;margin-bottom:4px;font-weight:600}
+  .cmi span{font-size:14px;color:#f9fafb}
+  .cf{padding:24px 60px;border-top:1px solid rgba(255,255,255,.08);display:flex;justify-content:space-between;align-items:center;position:relative;z-index:2}
+  .cft{font-size:9px;color:rgba(255,255,255,.3);letter-spacing:1px;text-transform:uppercase}
+  .page{padding:50px 60px;max-width:900px;background:#fff}
+  .ph{display:flex;justify-content:space-between;align-items:center;margin-bottom:36px;padding-bottom:16px;border-bottom:2px solid var(--a3)}
+  .pl img{max-height:32px;object-fit:contain} .pfn{font-size:14px;color:var(--a1);font-weight:700;letter-spacing:2px;text-transform:uppercase}
+  .pi{text-align:right} .pi .ref{font-size:10px;color:var(--a1);font-weight:700;background:var(--a3);padding:4px 12px;border-radius:20px} .pi .date{font-size:11px;color:var(--muted);margin-top:4px}
+  .sec{margin-bottom:36px}
+  .sclbl{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--a1);margin-bottom:8px;font-weight:700;display:flex;align-items:center;gap:8px}
+  .sclbl::after{content:'';flex:1;height:1px;background:var(--a3)}
+  .scttl{font-size:22px;font-weight:700;color:var(--dark);margin-bottom:12px}
+  .scbdy{font-size:12px;line-height:1.8;color:var(--muted);max-width:680px}
+  .ig{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}
+  .ic{background:var(--bg);padding:14px 16px;border-radius:8px;border-left:3px solid var(--a2)}
+  .ik{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;font-weight:600} .iv{font-size:13px;color:var(--dark);font-weight:500}
+  table.stbl{width:100%;border-collapse:collapse;margin-top:14px}
+  table.stbl thead{background:var(--dark)} table.stbl thead th{color:#f9fafb;padding:10px 14px;text-align:left;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;font-weight:600}
+  table.stbl thead th:last-child{text-align:right}
+  table.stbl tbody td{padding:12px 14px;border-bottom:1px solid #f3f4f6;font-size:12px;vertical-align:top}
+  table.stbl tbody tr:hover td{background:var(--a3)}
+  .sn{color:var(--dark);font-weight:600}
+  .spill{display:inline-block;font-size:9px;font-weight:700;padding:2px 7px;border-radius:20px;background:var(--a3);color:var(--a1);margin-top:2px}
+  .td-right{text-align:right!important;font-weight:700;color:var(--dark)}
+  .tb{margin-top:20px;display:flex;flex-direction:column;align-items:flex-end}
+  .trow{display:flex;gap:40px;padding:8px 0;border-bottom:1px solid #f3f4f6;width:300px}
+  .tlbl{font-size:11px;color:var(--muted);flex:1} .tval{font-size:13px;color:var(--dark);text-align:right;font-weight:500}
+  .tg2{background:var(--dark);border-radius:10px;padding:14px 18px;width:300px;display:flex;justify-content:space-between;align-items:center;margin-top:8px;border:none}
+  .tg2 .tlbl{color:var(--a2);font-weight:700;font-size:11px} .tg2 .tval{color:#fff;font-size:20px;font-weight:700}
+  .tl{list-style:none;margin-top:14px}
+  .tl li{display:flex;gap:10px;padding:8px 12px;border-radius:8px;margin-bottom:4px;font-size:12px;color:var(--mid);background:var(--bg)}
+  .tl li::before{content:'→';color:var(--a1);flex-shrink:0;font-weight:700}
+  .sa{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:24px}
+  .sb{border:2px solid var(--a3);border-radius:10px;padding:18px}
+  .sr{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--a1);margin-bottom:8px;font-weight:700}
+  .sn2{font-size:16px;color:var(--dark);font-weight:700} .stl{font-size:11px;color:var(--muted);margin-top:4px}
+  .hc{display:none!important}
+  .prices-hidden .col-birim,.prices-hidden .col-miktar,.prices-hidden .col-indirim{display:none!important}
+  .prices-hidden #sub-row,.prices-hidden #kdv-row{display:none!important}
+  @media print{#sp{display:none!important}#proposal{margin-right:0}body{background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+</style>
+</head>
+<body>
+<div id="sp">
+  <div class="st">Teklif Ayarları</div>
+  <div class="ss">
+    <div class="sl">Logo</div>
+    <div class="lau"><input type="file" accept="image/*" onchange="handleLogo(event)"><img id="lp" alt=""><div id="lph"><div style="font-size:18px;color:#9ca3af">+</div><div style="font-size:11px;color:#9ca3af">Logo yükle</div></div></div>
+  </div>
+  <div class="ss">
+    <div class="sl">Bilgiler</div>
+    <div class="fg"><label>Firma Adı</label><input value="ATLAS MİMARLIK" oninput="setAll('.fnc,.pfn',this.value);document.getElementById('sig-firm').textContent=this.value"></div>
+    <div class="fg"><label>Proje Adı</label><input value="Bosphorus Residence" oninput="document.getElementById('cpn').innerHTML=this.value;document.getElementById('ip').textContent=this.value"></div>
+    <div class="fg"><label>Müşteri</label><input value="Kemal Aydın" oninput="setAll('#cc,#ic,#sc',this.value)"></div>
+    <div class="fg"><label>Teklif No</label><input value="TKL-2025-047" oninput="setAll('.ref-no',this.value)"></div>
+  </div>
+  <div class="ss">
+    <div class="sl">Sütunlar</div>
+    <div class="tr2"><span class="tn">Birim Fiyat</span><div class="tg on" onclick="toggleCls('col-birim',this)"></div></div>
+    <div class="tr2"><span class="tn">Miktar / Süre</span><div class="tg on" onclick="toggleCls('col-miktar',this)"></div></div>
+    <div class="tr2"><span class="tn">İndirim</span><div class="tg" onclick="toggleCls('col-indirim',this)"></div></div>
+    <div class="tr2"><span class="tn">KDV</span><div class="tg on" onclick="toggleRow('kdv-row',this)"></div></div>
+    <div class="tr2"><span class="tn">Ödeme Koşulları</span><div class="tg on" onclick="toggleSec('terms-sec',this)"></div></div>
+    <div class="tr2"><span class="tn">İmza</span><div class="tg on" onclick="toggleSec('sig-sec',this)"></div></div>
+  </div>
+  <button class="bp bp-hide" onclick="toggleAllPrices(this)">⊘ Tüm Fiyatları Gizle</button>
+  <button class="bp bp-print" onclick="window.print()">⎙ PDF Olarak Kaydet</button>
+</div>
+
+<div id="proposal">
+  <div class="cover">
+    <div class="cover-geo1"></div><div class="cover-geo2"></div><div class="cover-geo3"></div>
+    <div class="ch">
+      <div class="cla"><img id="cl2" src="" alt="" style="display:none"><span class="fnc">ATLAS MİMARLIK</span></div>
+      <div class="cdt">Hizmet Teklifi</div>
+    </div>
+    <div class="cb">
+      <div class="clbl">Proje Teklifi</div>
+      <div class="cpn" id="cpn">Bosphorus <span>Residence</span></div>
+      <div class="cdv"><div class="cdv-bar"></div><div class="cdv-bar"></div><div class="cdv-bar"></div></div>
+      <div class="cm">
+        <div class="cmi"><label>Müşteri</label><span id="cc">Kemal Aydın</span></div>
+        <div class="cmi"><label>Tarih</label><span id="cd"></span></div>
+        <div class="cmi"><label>Teklif No</label><span class="ref-no">TKL-2025-047</span></div>
+      </div>
+    </div>
+    <div class="cf"><div class="cft">Gizli — Yalnızca Muhatabınedir</div><div style="font-size:10px;color:rgba(255,255,255,.3)" class="ref-no">TKL-2025-047</div></div>
+  </div>
+
+  <div class="page">
+    <div class="ph">
+      <div class="pl"><img id="pl2" src="" alt="" style="display:none"><span class="pfn">ATLAS MİMARLIK</span></div>
+      <div class="pi"><div class="ref ref-no">TKL-2025-047</div><div class="date" id="pd"></div></div>
+    </div>
+    <div class="sec">
+      <div class="sclbl">01 Giriş</div><div class="scttl">Proje Kapsamı</div>
+      <div class="scbdy">Sayın müşterimiz, sunulan bu teklif, talep ettiğiniz mimarlık hizmetleri doğrultusunda hazırlanmıştır. Kavramsal tasarımdan ruhsat sürecine kadar tüm aşamaları kapsamaktadır.</div>
+    </div>
+    <div class="sec">
+      <div class="sclbl">02 Taraflar</div>
+      <div class="ig">
+        <div class="ic"><div class="ik">Müşteri</div><div class="iv" id="ic">Kemal Aydın</div></div>
+        <div class="ic"><div class="ik">Firma</div><div class="iv">Atlas Mimarlık</div></div>
+        <div class="ic"><div class="ik">Proje</div><div class="iv" id="ip">Bosphorus Residence</div></div>
+        <div class="ic"><div class="ik">Tarih</div><div class="iv" id="id2"></div></div>
+      </div>
+    </div>
+    <div class="sec">
+      <div class="sclbl">03 Hizmetler</div><div class="scttl">Mimarlık Hizmetleri</div>
+      <table class="stbl">
+        <thead><tr>
+          <th style="width:38%">Hizmet</th>
+          <th class="col-miktar">Süre</th>
+          <th class="col-birim">Birim</th>
+          <th class="col-indirim">İndirim</th>
+          <th style="width:13%;text-align:right">Tutar</th>
+        </tr></thead>
+        <tbody>
+          <tr><td><div class="sn">Mimari Ön Proje</div><div class="spill">Aşama 1</div></td><td class="col-miktar">3 Hafta</td><td class="col-birim">₺18.000</td><td class="col-indirim">—</td><td class="td-right">₺18.000</td></tr>
+          <tr><td><div class="sn">Kesin Proje</div><div class="spill">Aşama 2</div></td><td class="col-miktar">4 Hafta</td><td class="col-birim">₺24.000</td><td class="col-indirim">—</td><td class="td-right">₺24.000</td></tr>
+          <tr><td><div class="sn">Ruhsat Projesi</div><div class="spill">Aşama 3</div></td><td class="col-miktar">3 Hafta</td><td class="col-birim">₺15.000</td><td class="col-indirim">—</td><td class="td-right">₺15.000</td></tr>
+          <tr><td><div class="sn">Uygulama Projesi</div><div class="spill">Aşama 4</div></td><td class="col-miktar">6 Hafta</td><td class="col-birim">₺32.000</td><td class="col-indirim">—</td><td class="td-right">₺32.000</td></tr>
+          <tr><td><div class="sn">Şantiye Koordinasyonu</div><div class="spill">Aşama 5</div></td><td class="col-miktar">12 Hafta</td><td class="col-birim">₺28.000</td><td class="col-indirim">—</td><td class="td-right">₺28.000</td></tr>
+        </tbody>
+      </table>
+      <div class="tb">
+        <div class="trow" id="sub-row"><span class="tlbl">Ara Toplam</span><span class="tval">₺117.000</span></div>
+        <div class="trow" id="kdv-row"><span class="tlbl">KDV (%20)</span><span class="tval">₺23.400</span></div>
+        <div class="tg2"><span class="tlbl">GENEL TOPLAM</span><span class="tval">₺140.400</span></div>
+      </div>
+    </div>
+    <div class="sec" id="terms-sec">
+      <div class="sclbl">04 Koşullar</div><div class="scttl">Ödeme Koşulları</div>
+      <ul class="tl">
+        <li>Sözleşme imzalanması ile birlikte toplam bedelin %30'u peşin alınır.</li>
+        <li>Her aşama tesliminde kalan bedelin eşit taksitleri tahsil edilir.</li>
+        <li>Teklif geçerlilik süresi 30 gündür.</li>
+        <li>Revizyon talepleri belirlenen sınırı aşması halinde ek ücretlendirilir.</li>
+      </ul>
+    </div>
+    <div class="sec" id="sig-sec">
+      <div class="sclbl">05 Onay</div>
+      <div class="sa">
+        <div class="sb"><div class="sr">Teklifi Hazırlayan</div><div class="sn2" id="sig-firm">Atlas Mimarlık</div><div class="stl">Mimar</div></div>
+        <div class="sb"><div class="sr">Müşteri Onayı</div><div class="sn2" id="sc">Kemal Aydın</div><div class="stl">Tarih: ___________</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const now=new Date();const ds=now.toLocaleDateString('tr-TR',{day:'2-digit',month:'long',year:'numeric'});
+['cd','pd','id2'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=ds});
+function handleLogo(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{const s=ev.target.result;['cl2','pl2'].forEach(id=>{const el=document.getElementById(id);el.src=s;el.style.display='block'});document.getElementById('lp').src=s;document.getElementById('lp').style.display='block';document.getElementById('lph').style.display='none';document.querySelectorAll('.fnc,.pfn').forEach(el=>el.style.display='none')};r.readAsDataURL(f)}
+function setAll(sel,val){document.querySelectorAll(sel).forEach(el=>el.textContent=val)}
+function toggleCls(cls,btn){btn.classList.toggle('on');document.querySelectorAll('.'+cls).forEach(el=>el.classList.toggle('hc'))}
+function toggleRow(id,btn){btn.classList.toggle('on');const el=document.getElementById(id);if(el)el.style.display=el.style.display==='none'?'':'none'}
+function toggleSec(id,btn){btn.classList.toggle('on');const el=document.getElementById(id);if(el)el.style.display=el.style.display==='none'?'':'none'}
+let ph=false;
+function toggleAllPrices(btn){ph=!ph;document.getElementById('proposal').classList.toggle('prices-hidden',ph);btn.textContent=ph?'✓ Fiyatları Göster':'⊘ Tüm Fiyatları Gizle';btn.style.borderColor=ph?'var(--a1)':'';btn.style.color=ph?'var(--a1)':''}
+</script>
+</body>
+</html>
