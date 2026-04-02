@@ -1,0 +1,43 @@
+@import "tailwindcss";
+
+:root {
+  --background: #f9fafb;
+  --foreground: #111827;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+}
+
+/* Dialog animations */
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes fade-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+@keyframes zoom-in-95 {
+  from { opacity: 0; transform: translate(-50%, -50%) scale(0.95); }
+  to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+@keyframes zoom-out-95 {
+  from { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  to { opacity: 0; transform: translate(-50%, -50%) scale(0.95); }
+}
+
+[data-state=open].animate-in { animation: fade-in 150ms ease-out; }
+[data-state=closed].animate-out { animation: fade-out 150ms ease-in; }
+[data-state=open].zoom-in-95 { animation: zoom-in-95 150ms ease-out; }
+[data-state=closed].zoom-out-95 { animation: zoom-out-95 150ms ease-in; }
+
+.fade-in-0[data-state=open] { opacity: 1; }
+.fade-out-0[data-state=closed] { opacity: 0; }
+

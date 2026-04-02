@@ -1,0 +1,181 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { getTransactions } from "@/lib/firestore/transactions";
+import { getProjects } from "@/lib/firestore/projects";
+import { Transaction, Project, TRANSACTION_CATEGORY_LABELS } from "@/types";
+import { BarChart3, TrendingUp, TrendingDown, FolderOpen, DollarSign } from "lucide-react";
+import toast from "react-hot-toast";
+
+function formatMoney(n: number) {
+  return n.toLocaleString("tr-TR", { minimumFractionDigits: 2 }) + " ₺";
+}
+
+export default function RaporlarPage() {
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    Promise.all([getTransactions(), getProjects()])
+      .then(([t, p]) => { setTransactions(t); setProjects(p); })
+      .catch(() => toast.error("Raporlar yüklenemedi"))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const totalIncome = transactions.filter((t) => t.type === "income").reduce((s, t) => s + t.amount, 0);
+  const totalExpense = transactions.filter((t) => t.type === "expense").reduce((s, t) => s + t.amount, 0);
+  const profit = totalIncome - totalExpense;
+
+  // Kategoriye göre gider özeti
+  const expenseByCategory = transactions
+    .filter((t) => t.type === "expense")
+    .reduce<Record<string, number>>((acc, t) => {
+      acc[t.category] = (acc[t.category] || 0) + t.amount;
+      return acc;
+    }, {});
+
+  // Kategoriye göre gelir özeti
+  const incomeByCategory = transactions
+    .filter((t) => t.type === "income")
+    .reduce<Record<string, number>>((acc, t) => {
+      acc[t.category] = (acc[t.category] || 0) + t.amount;
+      return acc;
+    }, {});
+
+  return (
+    <div className="p-6 max-w-5xl mx-auto">
+      <div className="flex items-center gap-3 mb-8">
+        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-100">
+          <BarChart3 className="h-5 w-5 text-indigo-600" />
+        </div>
+        <div>
+          <h1 className="text-xl font-bold text-neutral-900">Raporlar</h1>
+          <p className="text-sm text-neutral-500">Genel finansal özet</p>
+        </div>
+      </div>
+
+      {loading ? (
+        <div className="flex justify-center py-20">
+          <div className="h-7 w-7 animate-spin rounded-full border-2 border-indigo-600 border-t-transparent" />
+        </div>
+      ) : (
+        <div className="space-y-6">
+          {/* KPI Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="rounded-xl border border-green-200 bg-green-50 p-5">
+              <div className="flex items-center gap-2 mb-2">
+                <TrendingUp className="h-4 w-4 text-green-600" />
+                <span className="text-xs font-medium text-green-700">Toplam Gelir</span>
+              </div>
+              <p className="text-2xl font-bold text-green-700">{formatMoney(totalIncome)}</p>
+            </div>
+            <div className="rounded-xl border border-red-200 bg-red-50 p-5">
+              <div className="flex items-center gap-2 mb-2">
+                <TrendingDown className="h-4 w-4 text-red-600" />
+                <span className="text-xs font-medium text-red-700">Toplam Gider</span>
+              </div>
+              <p className="text-2xl font-bold text-red-700">{formatMoney(totalExpense)}</p>
+            </div>
+            <div className={`rounded-xl border p-5 ${profit >= 0 ? "border-indigo-200 bg-indigo-50" : "border-orange-200 bg-orange-50"}`}>
+              <div className="flex items-center gap-2 mb-2">
+                <DollarSign className={`h-4 w-4 ${profit >= 0 ? "text-indigo-600" : "text-orange-600"}`} />
+                <span className={`text-xs font-medium ${profit >= 0 ? "text-indigo-700" : "text-orange-700"}`}>
+                  Net Kâr/Zarar
+                </span>
+              </div>
+              <p className={`text-2xl font-bold ${profit >= 0 ? "text-indigo-700" : "text-orange-700"}`}>
+                {formatMoney(profit)}
+              </p>
+            </div>
+            <div className="rounded-xl border border-neutral-200 bg-white p-5">
+              <div className="flex items-center gap-2 mb-2">
+                <FolderOpen className="h-4 w-4 text-neutral-500" />
+                <span className="text-xs font-medium text-neutral-600">Toplam Proje</span>
+              </div>
+              <p className="text-2xl font-bold text-neutral-800">{projects.length}</p>
+              <p className="text-xs text-neutral-400 mt-1">
+                {projects.filter(p => p.status === "active").length} aktif
+              </p>
+            </div>
+          </div>
+
+          {/* Income by Category */}
+          {Object.keys(incomeByCategory).length > 0 && (
+            <div className="rounded-xl border border-neutral-200 bg-white p-5">
+              <h2 className="text-sm font-semibold text-neutral-800 mb-4 flex items-center gap-2">
+                <TrendingUp className="h-4 w-4 text-green-500" />
+                Gelir Kategorileri
+              </h2>
+              <div className="space-y-2">
+                {Object.entries(incomeByCategory)
+                  .sort((a, b) => b[1] - a[1])
+                  .map(([cat, amount]) => {
+                    const pct = totalIncome > 0 ? (amount / totalIncome) * 100 : 0;
+                    return (
+                      <div key={cat}>
+                        <div className="flex justify-between text-xs mb-1">
+                          <span className="text-neutral-600">
+                            {TRANSACTION_CATEGORY_LABELS[cat as keyof typeof TRANSACTION_CATEGORY_LABELS] || cat}
+                          </span>
+                          <span className="font-medium text-neutral-800">{formatMoney(amount)}</span>
+                        </div>
+                        <div className="h-1.5 rounded-full bg-neutral-100">
+                          <div
+                            className="h-full rounded-full bg-green-500"
+                            style={{ width: `${pct}%` }}
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
+              </div>
+            </div>
+          )}
+
+          {/* Expense by Category */}
+          {Object.keys(expenseByCategory).length > 0 && (
+            <div className="rounded-xl border border-neutral-200 bg-white p-5">
+              <h2 className="text-sm font-semibold text-neutral-800 mb-4 flex items-center gap-2">
+                <TrendingDown className="h-4 w-4 text-red-500" />
+                Gider Kategorileri
+              </h2>
+              <div className="space-y-2">
+                {Object.entries(expenseByCategory)
+                  .sort((a, b) => b[1] - a[1])
+                  .map(([cat, amount]) => {
+                    const pct = totalExpense > 0 ? (amount / totalExpense) * 100 : 0;
+                    return (
+                      <div key={cat}>
+                        <div className="flex justify-between text-xs mb-1">
+                          <span className="text-neutral-600">
+                            {TRANSACTION_CATEGORY_LABELS[cat as keyof typeof TRANSACTION_CATEGORY_LABELS] || cat}
+                          </span>
+                          <span className="font-medium text-neutral-800">{formatMoney(amount)}</span>
+                        </div>
+                        <div className="h-1.5 rounded-full bg-neutral-100">
+                          <div
+                            className="h-full rounded-full bg-red-500"
+                            style={{ width: `${pct}%` }}
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
+              </div>
+            </div>
+          )}
+
+          {transactions.length === 0 && (
+            <div className="rounded-xl border-2 border-dashed border-neutral-200 p-12 text-center">
+              <BarChart3 className="h-8 w-8 text-neutral-300 mx-auto mb-3" />
+              <p className="text-sm text-neutral-500">
+                Raporları görmek için önce işlemler ekleyin.
+              </p>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
