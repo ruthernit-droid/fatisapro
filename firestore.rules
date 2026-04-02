@@ -26,6 +26,10 @@ service cloud.firestore {
       allow read, write: if isAuthenticated();
     }
 
+    match /projectExpenses/{id} {
+      allow read, write: if isAuthenticated();
+    }
+
     match /tasks/{id} {
       allow read, write: if isAuthenticated();
     }

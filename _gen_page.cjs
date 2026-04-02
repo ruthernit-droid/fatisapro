@@ -1,4 +1,7 @@
-"use client";
+﻿const fs = require("fs");
+const TARGET = "c:/fatisa pro/src/app/(dashboard)/projeler/[id]/page.tsx";
+
+const CODE = `"use client";
 
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
@@ -237,7 +240,7 @@ export default function ProjectDetailPage() {
                 <><span>·</span>
                 <span className="flex items-center gap-1">
                   <User className="h-3.5 w-3.5" />
-                  <Link href={`/kisiler/${project.clientId}`} className="hover:text-indigo-600">{getPerson(project.clientId)?.name}</Link>
+                  <Link href={\`/kisiler/\${project.clientId}\`} className="hover:text-indigo-600">{getPerson(project.clientId)?.name}</Link>
                 </span></>
               )}
             </div>
@@ -319,7 +322,7 @@ export default function ProjectDetailPage() {
                   <tr key={item.id} className="border-b border-neutral-50 hover:bg-neutral-50/50">
                     <td className="px-4 py-2.5 text-xs text-neutral-400">{item.order}</td>
                     <td className="px-4 py-2.5 font-medium text-neutral-800">{item.serviceName}</td>
-                    <td className="px-4 py-2.5">{muellif ? <Link href={`/kisiler/${muellif.id}`} className="text-xs text-indigo-600 hover:underline">{muellif.name}</Link> : <span className="text-xs text-neutral-400">—</span>}</td>
+                    <td className="px-4 py-2.5">{muellif ? <Link href={\`/kisiler/\${muellif.id}\`} className="text-xs text-indigo-600 hover:underline">{muellif.name}</Link> : <span className="text-xs text-neutral-400">—</span>}</td>
                     <td className="px-4 py-2.5 text-right text-xs font-medium">{item.cost > 0 ? formatCurrency(item.cost) : <span className="text-neutral-300">—</span>}</td>
                     <td className="px-4 py-2.5 text-right text-xs text-green-600">{paid > 0 ? formatCurrency(paid) : <span className="text-neutral-300">—</span>}</td>
                     <td className="px-4 py-2.5 text-right text-xs">{item.cost > 0 ? <span className={remaining > 0 ? "text-red-500 font-medium" : "text-green-600"}>{formatCurrency(remaining)}</span> : <span className="text-neutral-300">—</span>}</td>
@@ -454,3 +457,8 @@ export default function ProjectDetailPage() {
     </div>
   );
 }
+`;
+
+fs.writeFileSync(TARGET, CODE, { encoding: "utf8" });
+console.log("Written:", fs.statSync(TARGET).size, "bytes");
+

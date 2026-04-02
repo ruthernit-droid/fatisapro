@@ -43,7 +43,6 @@ export default function ServiceItemDialog({
     muellif: "",
     cost: 0,
     plannedPaymentDate: "",
-    actualPaymentDate: "",
     status: "not_started" as ServiceItemStatus,
     notes: "",
     paymentInstallments: [] as PaymentInstallment[],
@@ -57,7 +56,6 @@ export default function ServiceItemDialog({
         muellif: item.muellif || "",
         cost: item.cost,
         plannedPaymentDate: item.plannedPaymentDate || "",
-        actualPaymentDate: item.actualPaymentDate || "",
         status: item.status,
         notes: item.notes || "",
         paymentInstallments: item.paymentInstallments ? [...item.paymentInstallments] : [],
@@ -105,7 +103,6 @@ export default function ServiceItemDialog({
         muellif: form.muellif || undefined,
         cost: form.cost,
         plannedPaymentDate: form.plannedPaymentDate || undefined,
-        actualPaymentDate: form.actualPaymentDate || undefined,
         status: form.status,
         notes: form.notes || undefined,
         paymentInstallments: form.paymentInstallments,
@@ -187,24 +184,14 @@ export default function ServiceItemDialog({
             </div>
           </div>
 
-          {/* Tarihler */}
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1">
-              <Label>Planlanan Ödeme</Label>
-              <Input
-                type="date"
-                value={form.plannedPaymentDate}
-                onChange={(e) => setForm((f) => ({ ...f, plannedPaymentDate: e.target.value }))}
-              />
-            </div>
-            <div className="space-y-1">
-              <Label>Gerçekleşen Ödeme</Label>
-              <Input
-                type="date"
-                value={form.actualPaymentDate}
-                onChange={(e) => setForm((f) => ({ ...f, actualPaymentDate: e.target.value }))}
-              />
-            </div>
+          {/* Tarih */}
+          <div className="space-y-1">
+            <Label>Planlanan Ödeme Tarihi</Label>
+            <Input
+              type="date"
+              value={form.plannedPaymentDate}
+              onChange={(e) => setForm((f) => ({ ...f, plannedPaymentDate: e.target.value }))}
+            />
           </div>
 
           {/* Ödeme Taksitleri */}
@@ -229,7 +216,17 @@ export default function ServiceItemDialog({
                     <input
                       type="checkbox"
                       checked={inst.isPaid}
-                      onChange={(e) => updateInstallment(inst.id, { isPaid: e.target.checked })}
+                      onChange={(e) => {
+                        const newVal = e.target.checked;
+                        const msg = newVal
+                          ? `Bu taksiti (${inst.amount > 0 ? `${inst.amount} ₺` : "tutarsız"}) ödendi olarak işaretlemek istiyor musunuz?`
+                          : "Bu taksitin ödeme işaretini kaldırmak istiyor musunuz?";
+                        if (!confirm(msg)) return;
+                        updateInstallment(inst.id, {
+                          isPaid: newVal,
+                          paidDate: newVal ? new Date().toISOString().slice(0, 10) : undefined,
+                        });
+                      }}
                       className="w-4 h-4 accent-green-600"
                       title="Ödendi mi?"
                     />

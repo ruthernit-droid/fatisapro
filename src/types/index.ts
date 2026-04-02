@@ -101,6 +101,20 @@ export interface ProjectServiceItem {
 }
 
 /** Ä°ÅŸverenin bize yapacaÄŸÄ± Ã¶deme planÄ± */
+/** Ek harcama: isverenin adina yapilan, isverene yansitilacak gider */
+export interface ProjectExpense {
+  id: string;
+  projectId: string;
+  description: string;
+  cost: number;
+  chargeToClient: number;
+  isPaid: boolean;
+  paidDate?: string;
+  notes?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export interface ProjectPaymentPlan {
   id: string;
   projectId: string;

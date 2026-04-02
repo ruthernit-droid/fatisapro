@@ -87,20 +87,20 @@ export default function PersonDetailPage() {
       setPaymentPlansByProject(ppByProj);
 
       const siByProj: Record<string, ProjectServiceItem[]> = {};
-      const muелліfItems: ProjectServiceItem[] = [];
+      const muellifItems: ProjectServiceItem[] = [];
       allItems.forEach(({ projectId, items }) => {
         const filtered = items.filter((i) => i.muellif === personId);
         if (filtered.length > 0) {
           siByProj[projectId] = filtered;
-          muелліfItems.push(...filtered);
+          muellifItems.push(...filtered);
         }
       });
       setServiceItemsByProject(siByProj);
 
       // Ilgili tüm projeleri (hem işveren hem müellif olarak) topla
-      const muелліfProjectIds = new Set(Object.keys(siByProj));
+      const muellifProjectIds = new Set(Object.keys(siByProj));
       const relatedProjects = allProj.filter(
-        (pr) => pr.clientId === personId || muелліfProjectIds.has(pr.id)
+        (pr) => pr.clientId === personId || muellifProjectIds.has(pr.id)
       );
       setProjects(relatedProjects);
     } catch (err) {
@@ -122,7 +122,7 @@ export default function PersonDetailPage() {
 
   // ── Finansal özet hesabı ────────────────────────────────────────────────
   const clientProjects = projects.filter((p) => p.clientId === personId);
-  const muелліfProjects = projects.filter((p) => serviceItemsByProject[p.id]?.length > 0);
+  const muellifProjects = projects.filter((p) => serviceItemsByProject[p.id]?.length > 0);
 
   // İşveren olarak: toplam sözleşme, tahsil edilen, bakiye
   const asClientTotal = clientProjects.reduce((s, p) => s + (p.contractAmount || 0), 0);
@@ -314,7 +314,7 @@ export default function PersonDetailPage() {
       )}
 
       {/* Müellif olduğu hizmet kalemleri */}
-      {muелліfProjects.length > 0 && (
+      {muellifProjects.length > 0 && (
         <div className="bg-white rounded-xl border border-neutral-200 overflow-hidden">
           <div className="px-4 py-3 border-b border-neutral-100">
             <h2 className="text-sm font-semibold text-neutral-900">
@@ -333,7 +333,7 @@ export default function PersonDetailPage() {
                 </tr>
               </thead>
               <tbody>
-                {muелліfProjects.flatMap((proj) =>
+                {muellifProjects.flatMap((proj) =>
                   (serviceItemsByProject[proj.id] || []).map((item) => {
                     const paid = item.paymentInstallments
                       .filter((i) => i.isPaid)
@@ -375,7 +375,7 @@ export default function PersonDetailPage() {
       )}
 
       {/* Proje yok */}
-      {clientProjects.length === 0 && muелліfProjects.length === 0 && (
+      {clientProjects.length === 0 && muellifProjects.length === 0 && (
         <div className="bg-white rounded-xl border border-neutral-100 px-4 py-10 text-center">
           <p className="text-sm text-neutral-400">Bu kişiye ait proje veya hizmet kaydı bulunamadı.</p>
         </div>

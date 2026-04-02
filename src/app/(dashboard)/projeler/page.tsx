@@ -91,7 +91,7 @@ export default function ProjelerPage() {
       parcel: data.parcel || undefined,
       clientId: data.clientId,
       notes: data.notes || undefined,
-      status: "active",
+      status: "draft",
       currency: "TRY",
     });
     // Standart hizmet kalemlerini otomatik ekle
