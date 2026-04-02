@@ -80,7 +80,7 @@
   .sr{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--a1);margin-bottom:8px;font-weight:700}
   .sn2{font-size:16px;color:var(--dark);font-weight:700} .stl{font-size:11px;color:var(--muted);margin-top:4px}
   .hc{display:none!important}
-  .prices-hidden .col-birim,.prices-hidden .col-miktar,.prices-hidden .col-indirim{display:none!important}
+  .prices-hidden .col-birim,.prices-hidden .col-miktar,.prices-hidden .col-indirim,.prices-hidden .col-tutar{display:none!important}
   .prices-hidden #sub-row,.prices-hidden #kdv-row{display:none!important}
   @media print{#sp{display:none!important}#proposal{margin-right:0}body{background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}}
 </style>
@@ -104,6 +104,7 @@
     <div class="tr2"><span class="tn">Birim Fiyat</span><div class="tg on" onclick="toggleCls('col-birim',this)"></div></div>
     <div class="tr2"><span class="tn">Miktar / Süre</span><div class="tg on" onclick="toggleCls('col-miktar',this)"></div></div>
     <div class="tr2"><span class="tn">İndirim</span><div class="tg" onclick="toggleCls('col-indirim',this)"></div></div>
+    <div class="tr2"><span class="tn">Kalem Tutarı</span><div class="tg on" onclick="toggleCls('col-tutar',this)"></div></div>
     <div class="tr2"><span class="tn">KDV</span><div class="tg on" onclick="toggleRow('kdv-row',this)"></div></div>
     <div class="tr2"><span class="tn">Ödeme Koşulları</span><div class="tg on" onclick="toggleSec('terms-sec',this)"></div></div>
     <div class="tr2"><span class="tn">İmza</span><div class="tg on" onclick="toggleSec('sig-sec',this)"></div></div>
@@ -158,14 +159,14 @@
           <th class="col-miktar">Süre</th>
           <th class="col-birim">Birim</th>
           <th class="col-indirim">İndirim</th>
-          <th style="width:13%;text-align:right">Tutar</th>
+          <th class="col-tutar" style="width:13%;text-align:right">Tutar</th>
         </tr></thead>
         <tbody>
-          <tr><td><div class="sn">Mimari Ön Proje</div><div class="spill">Aşama 1</div></td><td class="col-miktar">3 Hafta</td><td class="col-birim">₺18.000</td><td class="col-indirim">—</td><td class="td-right">₺18.000</td></tr>
-          <tr><td><div class="sn">Kesin Proje</div><div class="spill">Aşama 2</div></td><td class="col-miktar">4 Hafta</td><td class="col-birim">₺24.000</td><td class="col-indirim">—</td><td class="td-right">₺24.000</td></tr>
-          <tr><td><div class="sn">Ruhsat Projesi</div><div class="spill">Aşama 3</div></td><td class="col-miktar">3 Hafta</td><td class="col-birim">₺15.000</td><td class="col-indirim">—</td><td class="td-right">₺15.000</td></tr>
-          <tr><td><div class="sn">Uygulama Projesi</div><div class="spill">Aşama 4</div></td><td class="col-miktar">6 Hafta</td><td class="col-birim">₺32.000</td><td class="col-indirim">—</td><td class="td-right">₺32.000</td></tr>
-          <tr><td><div class="sn">Şantiye Koordinasyonu</div><div class="spill">Aşama 5</div></td><td class="col-miktar">12 Hafta</td><td class="col-birim">₺28.000</td><td class="col-indirim">—</td><td class="td-right">₺28.000</td></tr>
+          <tr><td><div class="sn">Mimari Ön Proje</div><div class="spill">Aşama 1</div></td><td class="col-miktar">3 Hafta</td><td class="col-birim">₺18.000</td><td class="col-indirim">—</td><td class="td-right col-tutar">₺18.000</td></tr>
+          <tr><td><div class="sn">Kesin Proje</div><div class="spill">Aşama 2</div></td><td class="col-miktar">4 Hafta</td><td class="col-birim">₺24.000</td><td class="col-indirim">—</td><td class="td-right col-tutar">₺24.000</td></tr>
+          <tr><td><div class="sn">Ruhsat Projesi</div><div class="spill">Aşama 3</div></td><td class="col-miktar">3 Hafta</td><td class="col-birim">₺15.000</td><td class="col-indirim">—</td><td class="td-right col-tutar">₺15.000</td></tr>
+          <tr><td><div class="sn">Uygulama Projesi</div><div class="spill">Aşama 4</div></td><td class="col-miktar">6 Hafta</td><td class="col-birim">₺32.000</td><td class="col-indirim">—</td><td class="td-right col-tutar">₺32.000</td></tr>
+          <tr><td><div class="sn">Şantiye Koordinasyonu</div><div class="spill">Aşama 5</div></td><td class="col-miktar">12 Hafta</td><td class="col-birim">₺28.000</td><td class="col-indirim">—</td><td class="td-right col-tutar">₺28.000</td></tr>
         </tbody>
       </table>
       <div class="tb">

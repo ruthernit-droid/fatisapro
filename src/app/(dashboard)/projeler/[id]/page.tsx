@@ -185,11 +185,8 @@ export default function ProjectDetailPage() {
     if (!confirm("Bu harcamayi silmek istiyor musunuz?")) return;
     await deleteExpense(id); await loadAll();
   }
-  async function handleSendQuote() {
-    if (!confirm("Teklif gonderildi olarak isaretlensin mi? Proje Beklemede durumuna alinacak.")) return;
-    await updateProject(projectId, { status: "on_hold" });
-    setProject((p) => p ? { ...p, status: "on_hold" } : p);
-    toast.success("Teklif gonderildi");
+  function handleSendQuote() {
+    router.push(`/teklifler/${projectId}`);
   }
   async function handleAcceptQuote() {
     if (!confirm("Teklif kabul edildi mi? Proje Aktif durumuna alinacak.")) return;
@@ -255,7 +252,7 @@ export default function ProjectDetailPage() {
         </div>
       </div>
 
-      {project.status === "draft" && <div className="rounded-xl bg-amber-50 border border-amber-200 px-4 py-3 text-sm text-amber-800">Bu proje taslak asamasindadir. Isverene teklif gondermek icin <strong>Teklif Gonder</strong> butonunu kullanin.</div>}
+      {project.status === "draft" && <div className="rounded-xl bg-amber-50 border border-amber-200 px-4 py-3 text-sm text-amber-800">Bu proje taslak asamasindadir. <strong>Teklif Gonder</strong> butonuna tiklayarak teklif belgesi hazirlayin, PDF alin ve gonderin.</div>}
       {project.status === "on_hold" && <div className="rounded-xl bg-yellow-50 border border-yellow-200 px-4 py-3 text-sm text-yellow-800">Teklif gonderildi, isverenden yanit bekleniyor. <strong>Kabul Edildi</strong> veya <strong>Reddedildi</strong> butonlarini kullanin.</div>}
       {project.status === "cancelled" && <div className="rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-800">Bu teklif reddedildi. Proje istatistiklere yansimiyor. Isterseniz projeyi kalici olarak silebilirsiniz.</div>}
 
