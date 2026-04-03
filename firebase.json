@@ -4,7 +4,13 @@
     "indexes": "firestore.indexes.json"
   },
   "hosting": {
-    "source": ".",
-    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"]
+    "public": "out",
+    "cleanUrls": true,
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+    "rewrites": [
+      { "source": "/projeler/**", "destination": "/projeler/placeholder/index.html" },
+      { "source": "/kisiler/**", "destination": "/kisiler/placeholder/index.html" },
+      { "source": "/teklifler/**", "destination": "/teklifler/placeholder/index.html" }
+    ]
   }
 }
