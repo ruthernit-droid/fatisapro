@@ -22,7 +22,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn, formatCurrency, getInitials, formatPhone } from "@/lib/utils";
 import toast from "react-hot-toast";
-import { ArrowLeft, Phone, Mail, Building, FolderOpen } from "lucide-react";
+import { ArrowLeft, Phone, Mail, Building, FolderOpen, MessageCircle, Copy, Check } from "lucide-react";
 import { PersonDialog } from "@/components/persons/PersonDialog";
 import { updatePerson } from "@/lib/firestore/persons";
 
@@ -48,6 +48,7 @@ export default function PersonDetailPage() {
   const { categories } = useCategories();
   const [loading, setLoading] = useState(true);
   const [showEditDialog, setShowEditDialog] = useState(false);
+  const [summaryCopied, setSummaryCopied] = useState(false);
 
   const loadAll = useCallback(async () => {
     try {
@@ -118,6 +119,71 @@ export default function PersonDetailPage() {
     toast.success("Kişi güncellendi");
     setShowEditDialog(false);
     await loadAll();
+  }
+
+  // ── Finansal döküm ──────────────────────────────────────────────────────
+  function buildSummaryText(): string {
+    const today = new Date().toLocaleDateString("tr-TR", { day: "2-digit", month: "long", year: "numeric" });
+    const lines: string[] = [];
+    lines.push(`*${person?.name ?? ""} — Finansal Özet*`);
+    lines.push(`📅 ${today}`);
+
+    if (clientProjects.length > 0) {
+      lines.push("");
+      lines.push("📋 *İŞVEREN OLARAK*");
+      clientProjects.forEach((proj) => {
+        const plans = paymentPlansByProject[proj.id] || [];
+        const received = plans.filter((p) => p.isPaid).reduce((s, p) => s + p.paidAmount, 0);
+        const outstanding = (proj.contractAmount || 0) - received;
+        lines.push(`• ${proj.title}`);
+        if (proj.contractAmount) lines.push(`  Sözleşme: ${formatCurrency(proj.contractAmount)}`);
+        lines.push(`  Tahsil: ${formatCurrency(received)}`);
+        if (outstanding > 0) lines.push(`  ⚠️ Alacak: ${formatCurrency(outstanding)}`);
+        else if (proj.contractAmount) lines.push(`  ✅ Ödeme tamamlandı`);
+      });
+      lines.push("");
+      lines.push(`Toplam: ${formatCurrency(asClientTotal)} | Tahsil: ${formatCurrency(asClientReceived)} | Alacak: ${formatCurrency(asClientOutstanding)}`);
+    }
+
+    if (asMuелліfTotal > 0) {
+      lines.push("");
+      lines.push("🏗️ *MÜELLİF OLARAK*");
+      Object.entries(serviceItemsByProject).forEach(([projectId, items]) => {
+        const proj = projects.find((p) => p.id === projectId);
+        items.forEach((item) => {
+          const paid = item.paymentInstallments.filter((i) => i.isPaid).reduce((s, i) => s + i.amount, 0);
+          const remaining = item.cost - paid;
+          lines.push(`• ${item.serviceName}${proj ? ` (${proj.title})` : ""}`);
+          lines.push(`  Bedel: ${formatCurrency(item.cost)} | Ödenen: ${formatCurrency(paid)}${remaining > 0 ? ` | Kalan: ${formatCurrency(remaining)}` : " ✅"}`);
+        });
+      });
+      lines.push("");
+      lines.push(`Toplam: ${formatCurrency(asMuелліfTotal)} | Ödenen: ${formatCurrency(asMuелліfPaid)} | Kalan: ${formatCurrency(asMuелліfRemaining)}`);
+    }
+
+    return lines.join("\n");
+  }
+
+  async function handleCopySummary() {
+    await navigator.clipboard.writeText(buildSummaryText());
+    setSummaryCopied(true);
+    setTimeout(() => setSummaryCopied(false), 2000);
+  }
+
+  function handleWhatsApp() {
+    const text = buildSummaryText();
+    const phone = person?.phone?.replace(/\D/g, "");
+    const url = phone
+      ? `https://wa.me/90${phone.replace(/^0/, "")}?text=${encodeURIComponent(text)}`
+      : `https://wa.me/?text=${encodeURIComponent(text)}`;
+    window.open(url, "_blank");
+  }
+
+  function handleEmail() {
+    const text = buildSummaryText();
+    const subject = encodeURIComponent(`Finansal Özet — ${person?.name ?? ""}`);
+    const body = encodeURIComponent(text);
+    window.open(`mailto:${person?.email ?? ""}?subject=${subject}&body=${body}`, "_blank");
   }
 
   // ── Finansal özet hesabı ────────────────────────────────────────────────
@@ -259,6 +325,41 @@ export default function PersonDetailPage() {
             <p className={cn("text-xl font-bold", asMuелліfRemaining > 0 ? "text-orange-500" : "text-green-600")}>
               {formatCurrency(asMuелліfRemaining)}
             </p>
+          </div>
+        </div>
+      )}
+
+      {/* Finansal döküm gönder */}
+      {(asClientTotal > 0 || asMuелліfTotal > 0) && (
+        <div className="bg-white rounded-xl border border-neutral-200 p-4">
+          <div className="flex items-center justify-between flex-wrap gap-3">
+            <div>
+              <h3 className="text-sm font-semibold text-neutral-900">Finansal Döküm Gönder</h3>
+              <p className="text-xs text-neutral-400 mt-0.5">Özeti WhatsApp, e-posta ile gönderin veya panoya kopyalayın</p>
+            </div>
+            <div className="flex gap-2 flex-wrap">
+              <button
+                onClick={handleWhatsApp}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-green-500 hover:bg-green-600 text-white transition-colors"
+              >
+                <MessageCircle className="h-3.5 w-3.5" />
+                WhatsApp
+              </button>
+              <button
+                onClick={handleEmail}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-500 hover:bg-blue-600 text-white transition-colors"
+              >
+                <Mail className="h-3.5 w-3.5" />
+                E-posta
+              </button>
+              <button
+                onClick={handleCopySummary}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border border-neutral-200 hover:bg-neutral-50 text-neutral-700 transition-colors"
+              >
+                {summaryCopied ? <Check className="h-3.5 w-3.5 text-green-600" /> : <Copy className="h-3.5 w-3.5" />}
+                {summaryCopied ? "Kopyalandı!" : "Kopyala"}
+              </button>
+            </div>
           </div>
         </div>
       )}
