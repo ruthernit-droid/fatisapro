@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useCategories } from "@/hooks/useCategories";
 import { useServiceCategories } from "@/hooks/useServiceCategories";
 import { useProjectTypes } from "@/hooks/useProjectTypes";
@@ -7,29 +8,52 @@ import { CategoryManager } from "@/components/settings/CategoryManager";
 import { ServiceCategoryManager } from "@/components/settings/ServiceCategoryManager";
 import { ProjectTypeManager } from "@/components/settings/ProjectTypeManager";
 import { CompanySettingsForm } from "@/components/settings/CompanySettings";
-import { Settings } from "lucide-react";
+import { AppSettingsPanel } from "@/components/settings/AppSettingsPanel";
+import { Settings, Building2, Layers, SlidersHorizontal } from "lucide-react";
+import { cn } from "@/lib/utils";
+
+const TABS = [
+  { id: "firma",       label: "Firma",    icon: Building2 },
+  { id: "kategoriler", label: "Listeler", icon: Layers },
+  { id: "uygulama",    label: "Uygulama", icon: SlidersHorizontal },
+] as const;
+
+type TabId = typeof TABS[number]["id"];
+
+/** Listeler sekmesi — kendi bağımsız hook'larıyla çalışır */
+function KategorilerTab() {
+  const { categories, loading: cLoading, add: cAdd, update: cUpdate, remove: cRemove } = useCategories();
+  const { serviceCategories, loading: scLoading, add: scAdd, update: scUpdate, remove: scRemove } = useServiceCategories();
+  const { projectTypes, loading: ptLoading, add: ptAdd, update: ptUpdate, remove: ptRemove } = useProjectTypes();
+
+  return (
+    <div className="space-y-5">
+      {cLoading ? (
+        <div className="py-4 text-center text-sm text-neutral-400">Yükleniyor...</div>
+      ) : (
+        <CategoryManager categories={categories} onAdd={cAdd} onUpdate={cUpdate} onDelete={cRemove} />
+      )}
+      {scLoading ? (
+        <div className="py-4 text-center text-sm text-neutral-400">Yükleniyor...</div>
+      ) : (
+        <ServiceCategoryManager categories={serviceCategories} onAdd={scAdd} onUpdate={scUpdate} onDelete={scRemove} />
+      )}
+      {ptLoading ? (
+        <div className="py-4 text-center text-sm text-neutral-400">Yükleniyor...</div>
+      ) : (
+        <ProjectTypeManager projectTypes={projectTypes} onAdd={ptAdd} onUpdate={ptUpdate} onDelete={ptRemove} />
+      )}
+    </div>
+  );
+}
 
 export default function AyarlarPage() {
-  const { categories, loading, add, update, remove } = useCategories();
-  const {
-    serviceCategories,
-    loading: scLoading,
-    add: scAdd,
-    update: scUpdate,
-    remove: scRemove,
-  } = useServiceCategories();
-  const {
-    projectTypes,
-    loading: ptLoading,
-    add: ptAdd,
-    update: ptUpdate,
-    remove: ptRemove,
-  } = useProjectTypes();
+  const [activeTab, setActiveTab] = useState<TabId>("firma");
 
   return (
     <div className="p-6 max-w-3xl mx-auto">
       {/* Header */}
-      <div className="flex items-center gap-3 mb-8">
+      <div className="flex items-center gap-3 mb-6">
         <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-100">
           <Settings className="h-5 w-5 text-indigo-600" />
         </div>
@@ -39,40 +63,32 @@ export default function AyarlarPage() {
         </div>
       </div>
 
-      <div className="space-y-6">
-        {/* Company Settings */}
-        <CompanySettingsForm />
-
-        {/* Person Category Manager */}
-        {!loading && (
-          <CategoryManager
-            categories={categories}
-            onAdd={add}
-            onUpdate={update}
-            onDelete={remove}
-          />
-        )}
-
-        {/* Service Category Manager */}
-        {!scLoading && (
-          <ServiceCategoryManager
-            categories={serviceCategories}
-            onAdd={scAdd}
-            onUpdate={scUpdate}
-            onDelete={scRemove}
-          />
-        )}
-
-        {/* Project Type Manager */}
-        {!ptLoading && (
-          <ProjectTypeManager
-            projectTypes={projectTypes}
-            onAdd={ptAdd}
-            onUpdate={ptUpdate}
-            onDelete={ptRemove}
-          />
-        )}
+      {/* Tabs */}
+      <div className="flex gap-1 rounded-xl bg-neutral-100 p-1 mb-6">
+        {TABS.map((tab) => {
+          const Icon = tab.icon;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={cn(
+                "flex-1 flex items-center justify-center gap-2 rounded-lg py-2 px-3 text-sm font-medium transition-all",
+                activeTab === tab.id
+                  ? "bg-white text-indigo-700 shadow-sm"
+                  : "text-neutral-500 hover:text-neutral-800"
+              )}
+            >
+              <Icon className="h-4 w-4 shrink-0" />
+              {tab.label}
+            </button>
+          );
+        })}
       </div>
+
+      {/* Her sekme bağımsız render — birindeki hata diğerini etkilemez */}
+      {activeTab === "firma" && <CompanySettingsForm />}
+      {activeTab === "kategoriler" && <KategorilerTab />}
+      {activeTab === "uygulama" && <AppSettingsPanel />}
     </div>
   );
 }

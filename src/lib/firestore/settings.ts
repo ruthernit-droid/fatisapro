@@ -6,7 +6,7 @@ import {
   Timestamp,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { CompanySettings } from "@/types";
+import { CompanySettings, AppSettings } from "@/types";
 
 const SETTINGS_DOC = "app/settings";
 
@@ -37,6 +37,37 @@ export async function saveCompanySettings(
 ): Promise<void> {
   await setDoc(
     doc(db, SETTINGS_DOC),
+    { ...data, updatedAt: serverTimestamp() },
+    { merge: true }
+  );
+}
+
+const APP_SETTINGS_DOC = "app/appSettings";
+
+const DEFAULT_APP_SETTINGS: AppSettings = {
+  kdvEnabled: false,
+  kdvRate: 20,
+  showCostInQuotes: false,
+  updatedAt: new Date(),
+};
+
+export async function getAppSettings(): Promise<AppSettings> {
+  const snap = await getDoc(doc(db, APP_SETTINGS_DOC));
+  if (!snap.exists()) return DEFAULT_APP_SETTINGS;
+  const data = snap.data();
+  return {
+    kdvEnabled: (data.kdvEnabled as boolean) ?? false,
+    kdvRate: (data.kdvRate as number) ?? 20,
+    showCostInQuotes: (data.showCostInQuotes as boolean) ?? false,
+    updatedAt: (data.updatedAt as Timestamp)?.toDate() || new Date(),
+  };
+}
+
+export async function saveAppSettings(
+  data: Partial<Omit<AppSettings, "updatedAt">>
+): Promise<void> {
+  await setDoc(
+    doc(db, APP_SETTINGS_DOC),
     { ...data, updatedAt: serverTimestamp() },
     { merge: true }
   );

@@ -226,6 +226,13 @@ export interface Quote {
 }
 
 // --- AYARLAR -----------------------------------------------------------------
+export interface AppSettings {
+  kdvEnabled: boolean;       // KDV hesaplamaları aktif mi (varsayılan: false)
+  kdvRate: number;           // KDV oranı % (varsayılan: 20)
+  showCostInQuotes: boolean; // Tekliflerde birim maliyet göster (varsayılan: false)
+  updatedAt: Date;
+}
+
 export interface CompanySettings {
   name: string;
   logoUrl?: string;

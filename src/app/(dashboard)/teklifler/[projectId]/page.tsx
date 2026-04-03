@@ -6,9 +6,9 @@ import Link from "next/link";
 import { getProject, updateProject } from "@/lib/firestore/projects";
 import { getServiceItems } from "@/lib/firestore/projectServiceItems";
 import { getPersons } from "@/lib/firestore/persons";
-import { getCompanySettings } from "@/lib/firestore/settings";
+import { getCompanySettings, getAppSettings } from "@/lib/firestore/settings";
 import { addQuote } from "@/lib/firestore/quotes";
-import { Project, ProjectServiceItem, Person, CompanySettings } from "@/types";
+import { Project, ProjectServiceItem, Person, CompanySettings, AppSettings } from "@/types";
 import { ArrowLeft, FileText, ExternalLink, Send, CheckCircle } from "lucide-react";
 import toast from "react-hot-toast";
 import { cn } from "@/lib/utils";
@@ -34,6 +34,7 @@ export default function QuoteTemplateSelectorPage() {
   const [serviceItems, setServiceItems] = useState<ProjectServiceItem[]>([]);
   const [client, setClient]       = useState<Person | null>(null);
   const [settings, setSettings]   = useState<CompanySettings | null>(null);
+  const [appSettings, setAppSettings] = useState<AppSettings | null>(null);
   const [loading, setLoading]     = useState(true);
   const [saving, setSaving]       = useState(false);
   const [sent, setSent]           = useState(false);
@@ -41,17 +42,19 @@ export default function QuoteTemplateSelectorPage() {
 
   const loadData = useCallback(async () => {
     try {
-      const [proj, items, persons, cfg] = await Promise.all([
+      const [proj, items, persons, cfg, appCfg] = await Promise.all([
         getProject(projectId),
         getServiceItems(projectId),
         getPersons(),
         getCompanySettings(),
+        getAppSettings(),
       ]);
       if (!proj) { router.push("/teklifler"); return; }
       setProject(proj);
       setServiceItems(items);
       setClient(persons.find((p) => p.id === proj.clientId) || null);
       setSettings(cfg);
+      setAppSettings(appCfg);
     } catch {
       toast.error("Veriler yüklenemedi");
     } finally {
@@ -83,7 +86,13 @@ export default function QuoteTemplateSelectorPage() {
       clientTax:    client?.taxNumber     || "",
       clientCompany:client?.companyName   || "",
       quote:        quoteNo,
-      items:        serviceItems.map((i) => ({ name: i.serviceName, price: i.cost || 0 })),
+      items:        serviceItems.map((i) => ({
+        name: i.serviceName,
+        price: appSettings?.showCostInQuotes ? (i.cost || 0) : 0,
+      })),
+      showCost:     appSettings?.showCostInQuotes ?? false,
+      kdvEnabled:   appSettings?.kdvEnabled ?? false,
+      kdvRate:      appSettings?.kdvRate ?? 20,
       total,
     };
     const encoded = btoa(encodeURIComponent(JSON.stringify(data)));

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { ServiceCategory } from "@/types";
 import { Layers, Plus, Trash2, Pencil, Check, X, ChevronDown, ChevronRight } from "lucide-react";
+import toast from "react-hot-toast";
 
 interface Props {
   categories: ServiceCategory[];
@@ -27,6 +28,10 @@ export function ServiceCategoryManager({ categories, onAdd, onUpdate, onDelete }
       await onAdd({ name: newName.trim(), subcategories: [], order: categories.length + 1 });
       setNewName("");
       setAdding(false);
+      toast.success("Kategori eklendi");
+    } catch (e) {
+      console.error(e);
+      toast.error("Kategori eklenemedi. Lütfen tekrar deneyin.");
     } finally {
       setBusy(false);
     }
@@ -38,6 +43,10 @@ export function ServiceCategoryManager({ categories, onAdd, onUpdate, onDelete }
     try {
       await onUpdate(id, { name: editName.trim() });
       setEditingId(null);
+      toast.success("Güncellendi");
+    } catch (e) {
+      console.error(e);
+      toast.error("Güncellenemedi");
     } finally {
       setBusy(false);
     }
@@ -49,6 +58,10 @@ export function ServiceCategoryManager({ categories, onAdd, onUpdate, onDelete }
     try {
       await onUpdate(cat.id, { subcategories: [...cat.subcategories, newSubcat.trim()] });
       setNewSubcat("");
+      toast.success("Alt kategori eklendi");
+    } catch (e) {
+      console.error(e);
+      toast.error("Alt kategori eklenemedi");
     } finally {
       setBusy(false);
     }
@@ -59,6 +72,10 @@ export function ServiceCategoryManager({ categories, onAdd, onUpdate, onDelete }
     setBusy(true);
     try {
       await onUpdate(cat.id, { subcategories: cat.subcategories.filter((_, i) => i !== idx) });
+      toast.success("Alt kategori silindi");
+    } catch (e) {
+      console.error(e);
+      toast.error("Silinemedi");
     } finally {
       setBusy(false);
     }
@@ -70,6 +87,10 @@ export function ServiceCategoryManager({ categories, onAdd, onUpdate, onDelete }
     try {
       await onDelete(id);
       if (expandedId === id) setExpandedId(null);
+      toast.success("Kategori silindi");
+    } catch (e) {
+      console.error(e);
+      toast.error("Silinemedi");
     } finally {
       setBusy(false);
     }

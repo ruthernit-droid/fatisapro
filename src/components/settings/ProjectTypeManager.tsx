@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { ProjectTypeItem } from "@/types";
 import { FolderKanban, Plus, Trash2, Pencil, Check, X } from "lucide-react";
+import toast from "react-hot-toast";
 
 interface Props {
   projectTypes: ProjectTypeItem[];
@@ -25,6 +26,10 @@ export function ProjectTypeManager({ projectTypes, onAdd, onUpdate, onDelete }: 
       await onAdd({ name: newName.trim(), order: projectTypes.length + 1 });
       setNewName("");
       setAdding(false);
+      toast.success("Proje türü eklendi");
+    } catch (e) {
+      console.error(e);
+      toast.error("Eklenemedi. Lütfen tekrar deneyin.");
     } finally {
       setBusy(false);
     }
@@ -36,6 +41,10 @@ export function ProjectTypeManager({ projectTypes, onAdd, onUpdate, onDelete }: 
     try {
       await onUpdate(id, { name: editName.trim() });
       setEditingId(null);
+      toast.success("Güncellendi");
+    } catch (e) {
+      console.error(e);
+      toast.error("Güncellenemedi");
     } finally {
       setBusy(false);
     }
@@ -46,6 +55,10 @@ export function ProjectTypeManager({ projectTypes, onAdd, onUpdate, onDelete }: 
     setBusy(true);
     try {
       await onDelete(id);
+      toast.success("Silindi");
+    } catch (e) {
+      console.error(e);
+      toast.error("Silinemedi");
     } finally {
       setBusy(false);
     }
