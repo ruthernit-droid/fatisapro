@@ -50,6 +50,14 @@ service cloud.firestore {
       allow read, write: if isAuthenticated();
     }
 
+    match /serviceCategories/{id} {
+      allow read, write: if isAuthenticated();
+    }
+
+    match /projectTypes/{id} {
+      allow read, write: if isAuthenticated();
+    }
+
     match /app/{docId} {
       allow read, write: if isAuthenticated();
     }
