@@ -2,8 +2,10 @@
 
 import { useCategories } from "@/hooks/useCategories";
 import { useServiceCategories } from "@/hooks/useServiceCategories";
+import { useProjectTypes } from "@/hooks/useProjectTypes";
 import { CategoryManager } from "@/components/settings/CategoryManager";
 import { ServiceCategoryManager } from "@/components/settings/ServiceCategoryManager";
+import { ProjectTypeManager } from "@/components/settings/ProjectTypeManager";
 import { CompanySettingsForm } from "@/components/settings/CompanySettings";
 import { Settings } from "lucide-react";
 
@@ -16,6 +18,13 @@ export default function AyarlarPage() {
     update: scUpdate,
     remove: scRemove,
   } = useServiceCategories();
+  const {
+    projectTypes,
+    loading: ptLoading,
+    add: ptAdd,
+    update: ptUpdate,
+    remove: ptRemove,
+  } = useProjectTypes();
 
   return (
     <div className="p-6 max-w-3xl mx-auto">
@@ -51,6 +60,16 @@ export default function AyarlarPage() {
             onAdd={scAdd}
             onUpdate={scUpdate}
             onDelete={scRemove}
+          />
+        )}
+
+        {/* Project Type Manager */}
+        {!ptLoading && (
+          <ProjectTypeManager
+            projectTypes={projectTypes}
+            onAdd={ptAdd}
+            onUpdate={ptUpdate}
+            onDelete={ptRemove}
           />
         )}
       </div>

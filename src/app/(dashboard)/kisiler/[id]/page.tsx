@@ -11,6 +11,7 @@ import {
   ProjectPaymentPlan,
   PROJECT_STATUS_LABELS,
   PROJECT_TYPE_LABELS,
+  ProjectType,
 } from "@/types";
 import { getPerson } from "@/lib/firestore/persons";
 import { getProjects } from "@/lib/firestore/projects";
@@ -18,6 +19,7 @@ import { getServiceItems } from "@/lib/firestore/projectServiceItems";
 import { getPaymentPlans } from "@/lib/firestore/projectPaymentPlans";
 import { getPersons } from "@/lib/firestore/persons";
 import { useCategories } from "@/hooks/useCategories";
+import { useProjectTypes } from "@/hooks/useProjectTypes";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn, formatCurrency, getInitials, formatPhone } from "@/lib/utils";
@@ -46,7 +48,13 @@ export default function PersonDetailPage() {
   >({});
 
   const { categories } = useCategories();
+  const { projectTypes } = useProjectTypes();
   const [loading, setLoading] = useState(true);
+
+  function resolveProjectType(type: string): string {
+    const pt = projectTypes.find((t) => t.id === type || t.name === type);
+    return pt?.name || PROJECT_TYPE_LABELS[type as ProjectType] || type;
+  }
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [summaryCopied, setSummaryCopied] = useState(false);
 
@@ -389,7 +397,7 @@ export default function PersonDetailPage() {
                     >
                       {proj.title}
                     </Link>
-                    <p className="text-xs text-neutral-500">{PROJECT_TYPE_LABELS[proj.type]}</p>
+                    <p className="text-xs text-neutral-500">{resolveProjectType(proj.type)}</p>
                   </div>
                   <div className="text-right shrink-0">
                     {proj.contractAmount ? (

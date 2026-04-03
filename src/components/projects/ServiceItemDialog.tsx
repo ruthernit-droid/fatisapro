@@ -6,6 +6,7 @@ import {
   ServiceItemStatus,
   PaymentInstallment,
   Person,
+  ServiceCategory,
   SERVICE_ITEM_STATUS_LABELS,
   DEFAULT_SERVICE_NAMES,
 } from "@/types";
@@ -20,8 +21,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import PersonCombobox from "@/components/projects/PersonCombobox";
-import { Trash2, Plus } from "lucide-react";
+import { Trash2, Plus, Zap } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
+import toast from "react-hot-toast";
 
 interface ServiceItemDialogProps {
   open: boolean;
@@ -29,6 +31,7 @@ interface ServiceItemDialogProps {
   onSave: (data: Partial<Omit<ProjectServiceItem, "id" | "createdAt" | "updatedAt">>) => Promise<void>;
   item: ProjectServiceItem | null;
   persons: Person[];
+  serviceCategories?: ServiceCategory[];
 }
 
 export default function ServiceItemDialog({
@@ -37,6 +40,7 @@ export default function ServiceItemDialog({
   onSave,
   item,
   persons,
+  serviceCategories,
 }: ServiceItemDialogProps) {
   const [form, setForm] = useState({
     serviceName: "",
@@ -48,6 +52,8 @@ export default function ServiceItemDialog({
     paymentInstallments: [] as PaymentInstallment[],
   });
   const [saving, setSaving] = useState(false);
+  const [quickPayOpen, setQuickPayOpen] = useState(false);
+  const [quickPayDate, setQuickPayDate] = useState("");
 
   useEffect(() => {
     if (item) {
@@ -61,6 +67,7 @@ export default function ServiceItemDialog({
         paymentInstallments: item.paymentInstallments ? [...item.paymentInstallments] : [],
       });
     }
+    setQuickPayOpen(false);
   }, [item, open]);
 
   const paidTotal = form.paymentInstallments
@@ -126,14 +133,28 @@ export default function ServiceItemDialog({
             <Label>Hizmet</Label>
             <div className="flex gap-2">
               <select
-                value={DEFAULT_SERVICE_NAMES.includes(form.serviceName as typeof DEFAULT_SERVICE_NAMES[number]) ? form.serviceName : ""}
+                value={form.serviceName}
                 onChange={(e) => e.target.value && setForm((f) => ({ ...f, serviceName: e.target.value }))}
                 className="flex-1 px-3 py-2 border border-neutral-200 rounded-lg bg-white text-sm focus:outline-none focus:border-blue-500"
               >
                 <option value="">-- Standart seç --</option>
-                {DEFAULT_SERVICE_NAMES.map((n) => (
-                  <option key={n} value={n}>{n}</option>
-                ))}
+                {serviceCategories && serviceCategories.length > 0 ? (
+                  serviceCategories.map((cat) => (
+                    <optgroup key={cat.id} label={cat.name}>
+                      {cat.subcategories.length > 0 ? (
+                        cat.subcategories.map((sub) => (
+                          <option key={sub} value={sub}>{sub}</option>
+                        ))
+                      ) : (
+                        <option value={cat.name}>{cat.name}</option>
+                      )}
+                    </optgroup>
+                  ))
+                ) : (
+                  DEFAULT_SERVICE_NAMES.map((n) => (
+                    <option key={n} value={n}>{n}</option>
+                  ))
+                )}
               </select>
               <Input
                 value={form.serviceName}
@@ -158,7 +179,22 @@ export default function ServiceItemDialog({
           {/* Maliyet + Durum */}
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
-              <Label>Maliyet (₺)</Label>
+              <div className="flex items-center justify-between">
+                <Label>Maliyet (₺)</Label>
+                {form.cost > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setQuickPayDate(new Date().toISOString().slice(0, 10));
+                      setQuickPayOpen(true);
+                    }}
+                    className="flex items-center gap-1 text-[10px] font-medium text-amber-700 bg-amber-100 hover:bg-amber-200 px-2 py-0.5 rounded-full transition-colors"
+                  >
+                    <Zap className="h-3 w-3" />
+                    Hızlı Öde
+                  </button>
+                )}
+              </div>
               <Input
                 type="number"
                 min={0}
@@ -193,6 +229,52 @@ export default function ServiceItemDialog({
               onChange={(e) => setForm((f) => ({ ...f, plannedPaymentDate: e.target.value }))}
             />
           </div>
+
+          {/* Quick-pay confirm panel */}
+          {quickPayOpen && (
+            <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 space-y-2">
+              <p className="text-xs font-semibold text-amber-800 flex items-center gap-1.5">
+                <Zap className="h-3.5 w-3.5" />
+                Hızlı Ödeme — {form.cost.toLocaleString("tr-TR", { minimumFractionDigits: 2 })} ₺ müellife ödenecek
+              </p>
+              <div className="flex items-center gap-2">
+                <Label className="text-xs text-amber-700 shrink-0">Tarih</Label>
+                <Input
+                  type="date"
+                  value={quickPayDate}
+                  onChange={(e) => setQuickPayDate(e.target.value)}
+                  className="h-8 text-xs"
+                />
+              </div>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (!confirm(`${form.cost.toLocaleString("tr-TR", { minimumFractionDigits: 2 })} ₺ tutarı ${quickPayDate} tarihinde ödendi olarak kaydetmek istiyor musunuz?`)) return;
+                    const newInst: PaymentInstallment = {
+                      id: Math.random().toString(36).slice(2),
+                      amount: form.cost,
+                      isPaid: true,
+                      paidDate: quickPayDate || new Date().toISOString().slice(0, 10),
+                    };
+                    setForm((f) => ({ ...f, paymentInstallments: [...f.paymentInstallments, newInst] }));
+                    setQuickPayOpen(false);
+                    toast.success("Taksit eklendi. Kayıt için ‘Kaydet’ butonuna basın.");
+                  }}
+                  className="flex-1 rounded-lg bg-amber-600 text-white text-xs font-semibold py-1.5 hover:bg-amber-700 transition-colors"
+                >
+                  Ödendi — Onayla
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setQuickPayOpen(false)}
+                  className="px-3 rounded-lg border border-amber-300 text-amber-700 text-xs hover:bg-amber-100 transition-colors"
+                >
+                  İptal
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* Ödeme Taksitleri */}
           <div className="space-y-2">

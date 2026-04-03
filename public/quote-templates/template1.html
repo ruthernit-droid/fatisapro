@@ -83,13 +83,6 @@
     <div class="lau"><input type="file" accept="image/*" onchange="handleLogo(event)"><img id="lp" alt=""><div id="lph"><div style="font-size:20px;color:var(--text-muted)">⊕</div><div style="font-size:11px;color:var(--text-muted)">Logo yükle</div></div></div>
   </div>
   <div class="ss">
-    <div class="sl">Bilgiler</div>
-    <div class="fg"><label>Firma Adı</label><input type="text" value="ATLAS MİMARLIK" oninput="setAll('.fnc,.pfn',this.value);document.getElementById('sig-firm').textContent=this.value"></div>
-    <div class="fg"><label>Proje Adı</label><input type="text" value="Bosphorus Residence" oninput="document.getElementById('cpn').innerHTML=this.value;document.getElementById('ip').textContent=this.value"></div>
-    <div class="fg"><label>Müşteri Adı</label><input type="text" value="Kemal Aydın" oninput="setAll('#cc,#ic,#sc',this.value)"></div>
-    <div class="fg"><label>Teklif No</label><input type="text" value="TKL-2025-047" oninput="setAll('.ref-no',this.value)"></div>
-  </div>
-  <div class="ss">
     <div class="sl">Sütun Görünürlüğü</div>
     <div class="tr"><span class="tn">Birim Fiyat</span><div class="tg on" onclick="toggleCls('col-birim',this)"></div></div>
     <div class="tr"><span class="tn">Miktar / Süre</span><div class="tg on" onclick="toggleCls('col-miktar',this)"></div></div>
@@ -139,8 +132,24 @@
     <div class="sec">
       <div class="sclbl">02 — Taraflar</div>
       <div class="ig">
-        <div class="ic"><div class="ik">Müşteri</div><div class="iv" id="ic">Kemal Aydın</div></div>
-        <div class="ic"><div class="ik">Firma</div><div class="iv">Atlas Mimarlık</div></div>
+        <div class="ic">
+          <div class="ik">Müşteri</div>
+          <div class="iv" id="ic">Kemal Aydın</div>
+          <div id="ic-company" style="font-size:11px;color:var(--text-muted);margin-top:3px"></div>
+          <div id="ic-phone" style="font-size:11px;color:var(--text-muted);margin-top:2px"></div>
+          <div id="ic-email" style="font-size:11px;color:var(--text-muted);margin-top:2px"></div>
+          <div id="ic-address" style="font-size:11px;color:var(--text-muted);margin-top:2px"></div>
+          <div id="ic-tax" style="font-size:11px;color:var(--text-muted);margin-top:2px"></div>
+        </div>
+        <div class="ic">
+          <div class="ik">Firma</div>
+          <div class="iv" id="firm-name">Atlas Mimarlık</div>
+          <div id="firm-address" style="font-size:11px;color:var(--text-muted);margin-top:3px"></div>
+          <div id="firm-phone" style="font-size:11px;color:var(--text-muted);margin-top:2px"></div>
+          <div id="firm-email" style="font-size:11px;color:var(--text-muted);margin-top:2px"></div>
+          <div id="firm-tax" style="font-size:11px;color:var(--text-muted);margin-top:2px"></div>
+          <div id="firm-iban" style="font-size:11px;color:var(--text-muted);margin-top:2px"></div>
+        </div>
         <div class="ic"><div class="ik">Proje</div><div class="iv" id="ip">Bosphorus Residence</div></div>
         <div class="ic"><div class="ik">Tarih</div><div class="iv" id="id2"></div></div>
       </div>
@@ -224,20 +233,21 @@ function toggleAllPrices(btn){
     const raw = new URLSearchParams(location.search).get('d');
     if (!raw) return;
     const d = JSON.parse(decodeURIComponent(atob(raw)));
-    function findInput(label) {
-      for (const lbl of document.querySelectorAll('.fg label')) {
-        if (lbl.textContent.trim().startsWith(label)) return lbl.parentElement.querySelector('input,textarea');
-      }
-    }
-    function fire(inp, val) {
-      if (!inp) return;
-      inp.value = val;
-      inp.dispatchEvent(new Event('input', {bubbles: true}));
-    }
-    if (d.firm)    fire(findInput('Firma'),    d.firm);
-    if (d.project) fire(findInput('Proje'),    d.project);
-    if (d.client)  fire(findInput('Müşteri'),  d.client);
-    if (d.quote)   fire(findInput('Teklif'),   d.quote);
+    function setText(id, val) { const el=document.getElementById(id); if(el&&val) el.textContent=val; }
+    if (d.firm)    { setAll('.fnc,.pfn', d.firm); setText('sig-firm', d.firm); setText('firm-name', d.firm); }
+    if (d.project) { setText('cpn', d.project); setText('ip', d.project); }
+    if (d.client)  { setAll('#cc,#ic,#sc', d.client); }
+    if (d.quote)   { setAll('.ref-no', d.quote); }
+    setText('firm-address', d.firmAddress);
+    setText('firm-phone',   d.firmPhone);
+    setText('firm-email',   d.firmEmail);
+    setText('firm-tax',     d.firmTax);
+    setText('firm-iban',    d.firmIban && d.firmBankName ? d.firmBankName+': '+d.firmIban : (d.firmIban||''));
+    setText('ic-company',   d.clientCompany);
+    setText('ic-phone',     d.clientPhone);
+    setText('ic-email',     d.clientEmail);
+    setText('ic-address',   d.clientAddress);
+    setText('ic-tax',       d.clientTax ? 'VKN: '+d.clientTax : '');
     if (d.items && d.items.length) {
       const tbody = document.querySelector('table.st2 tbody');
       if (tbody) {

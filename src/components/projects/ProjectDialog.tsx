@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Person, PersonCategory, ProjectType, PROJECT_TYPE_LABELS } from "@/types";
+import { Person, PersonCategory, ProjectType, ProjectTypeItem, PROJECT_TYPE_LABELS } from "@/types";
 import {
   Dialog,
   DialogContent,
@@ -20,7 +20,7 @@ interface ProjectDialogProps {
   onClose: () => void;
   onSave: (data: {
     title: string;
-    type: ProjectType;
+    type: string;
     neighborhood: string;
     parcel: string;
     clientId: string;
@@ -29,11 +29,12 @@ interface ProjectDialogProps {
   persons: Person[];
   categories: PersonCategory[];
   onPersonAdded: (person: Person) => void;
+  projectTypes?: ProjectTypeItem[];
 }
 
 const EMPTY = {
   title: "",
-  type: "architectural_project" as ProjectType,
+  type: "architectural_project" as string,
   neighborhood: "",
   parcel: "",
   clientId: "",
@@ -47,6 +48,7 @@ export default function ProjectDialog({
   persons,
   categories,
   onPersonAdded,
+  projectTypes,
 }: ProjectDialogProps) {
   const [form, setForm] = useState(EMPTY);
   const [saving, setSaving] = useState(false);
@@ -130,14 +132,17 @@ export default function ProjectDialog({
               <select
                 id="type"
                 value={form.type}
-                onChange={(e) => setForm((f) => ({ ...f, type: e.target.value as ProjectType }))}
+                onChange={(e) => setForm((f) => ({ ...f, type: e.target.value }))}
                 className="w-full px-3 py-2 border border-neutral-200 rounded-lg bg-white text-sm focus:outline-none focus:border-blue-500"
               >
-                {(Object.entries(PROJECT_TYPE_LABELS) as [ProjectType, string][]).map(
-                  ([k, v]) => (
-                    <option key={k} value={k}>{v}</option>
-                  )
-                )}
+                {projectTypes && projectTypes.length > 0
+                  ? [...projectTypes].sort((a, b) => a.order - b.order).map((pt) => (
+                      <option key={pt.id} value={pt.id}>{pt.name}</option>
+                    ))
+                  : (Object.entries(PROJECT_TYPE_LABELS) as [ProjectType, string][]).map(([k, v]) => (
+                      <option key={k} value={k}>{v}</option>
+                    ))
+                }
               </select>
             </div>
 

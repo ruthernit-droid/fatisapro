@@ -11,6 +11,7 @@ import {
   Person,
   PROJECT_STATUS_LABELS,
   PROJECT_TYPE_LABELS,
+  ProjectType,
   SERVICE_ITEM_STATUS_LABELS,
   SERVICE_ITEM_STATUS_COLORS,
 } from "@/types";
@@ -35,6 +36,8 @@ import {
 } from "@/lib/firestore/projectExpenses";
 import { getPersons } from "@/lib/firestore/persons";
 import { useCategories } from "@/hooks/useCategories";
+import { useServiceCategories } from "@/hooks/useServiceCategories";
+import { useProjectTypes } from "@/hooks/useProjectTypes";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -67,7 +70,14 @@ export default function ProjectDetailPage() {
   const [expenses, setExpenses] = useState<ProjectExpense[]>([]);
   const [persons, setPersons] = useState<Person[]>([]);
   const { categories } = useCategories();
+  const { serviceCategories } = useServiceCategories();
+  const { projectTypes } = useProjectTypes();
   const [loading, setLoading] = useState(true);
+
+  function resolveProjectType(type: string): string {
+    const pt = projectTypes.find((t) => t.id === type || t.name === type);
+    return pt?.name || PROJECT_TYPE_LABELS[type as ProjectType] || type;
+  }
 
   const [editingItem, setEditingItem] = useState<ProjectServiceItem | null>(null);
   const [showItemDialog, setShowItemDialog] = useState(false);
@@ -233,7 +243,7 @@ export default function ProjectDetailPage() {
           <div>
             <h1 className="text-xl font-bold text-neutral-900">{project.title}</h1>
             <div className="flex items-center gap-2 mt-1 text-sm text-neutral-500 flex-wrap">
-              <span>{PROJECT_TYPE_LABELS[project.type]}</span>
+              <span>{resolveProjectType(project.type)}</span>
               {project.neighborhood && <><span>·</span><span>{project.neighborhood}</span></>}
               {project.parcel && <><span>·</span><span>Ada/Parsel: {project.parcel}</span></>}
               {getPerson(project.clientId) && (
@@ -455,7 +465,7 @@ export default function ProjectDetailPage() {
         )}
       </div>
 
-      <ServiceItemDialog open={showItemDialog} onClose={() => { setShowItemDialog(false); setEditingItem(null); }} onSave={handleSaveItem} item={editingItem} persons={persons} />
+      <ServiceItemDialog open={showItemDialog} onClose={() => { setShowItemDialog(false); setEditingItem(null); }} onSave={handleSaveItem} item={editingItem} persons={persons} serviceCategories={serviceCategories} />
     </div>
   );
 }

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState, useCallback } from "react";
 import { PersonCategory } from "@/types";
@@ -12,11 +12,11 @@ import {
 } from "@/lib/firestore/categories";
 import toast from "react-hot-toast";
 
-/** Firebase kurallarÄ± deploy edilmemiÅŸse veya yÃ¼kleme baÅŸarÄ±sÄ±z olursa kullanÄ±lÄ±r */
+/** Firebase kuralları deploy edilmemişse veya yükleme başarısız olursa kullanılır */
 const FALLBACK_CATEGORIES: PersonCategory[] = [
   {
     id: "cat-isveren",
-    name: "Ä°ÅŸveren",
+    name: "İşveren",
     color: "#6366f1",
     isDefault: true,
     order: 1,
@@ -25,7 +25,7 @@ const FALLBACK_CATEGORIES: PersonCategory[] = [
   },
   {
     id: "cat-muellif",
-    name: "MÃ¼ellif",
+    name: "Müellif",
     color: "#0ea5e9",
     isDefault: true,
     order: 2,
@@ -34,7 +34,7 @@ const FALLBACK_CATEGORIES: PersonCategory[] = [
   },
   {
     id: "cat-musteri",
-    name: "MÃ¼ÅŸteri",
+    name: "Müşteri",
     color: "#10b981",
     isDefault: true,
     order: 3,
@@ -43,7 +43,7 @@ const FALLBACK_CATEGORIES: PersonCategory[] = [
   },
   {
     id: "cat-tedarikci",
-    name: "TedarikÃ§i",
+    name: "Tedarikçi",
     color: "#f59e0b",
     isDefault: true,
     order: 4,
@@ -59,17 +59,17 @@ export function useCategories() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      // Ã–nce duplikatlarÄ± temizle, sonra seed yap
+      // Önce duplikatları temizle, sonra seed yap
       await cleanupDuplicateCategories();
       await seedDefaultCategories();
       const data = await getCategories();
       if (data.length > 0) {
         setCategories(data);
       }
-      // EÄŸer Firestore boÅŸ dÃ¶nerse fallback kalÄ±r
+      // Eğer Firestore boş dönerse fallback kalır
     } catch (err) {
-      console.error("Kategoriler yÃ¼klenemedi:", err);
-      // Firebase kurallarÄ± yoksa fallback kategoriler gÃ¶rÃ¼nÃ¼r, sessizce geÃ§
+      console.error("Kategoriler yüklenemedi:", err);
+      // Firebase kuralları yoksa fallback kategoriler görünür, sessizce geç
     } finally {
       setLoading(false);
     }
@@ -92,7 +92,7 @@ export function useCategories() {
     data: Partial<Omit<PersonCategory, "id" | "createdAt" | "updatedAt">>
   ) => {
     await updateCategory(id, data);
-    toast.success("Kategori gÃ¼ncellendi");
+    toast.success("Kategori güncellendi");
     await load();
   };
 

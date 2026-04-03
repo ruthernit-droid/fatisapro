@@ -9,6 +9,15 @@
   updatedAt: Date;
 }
 
+/** Proje türleri — ayarlar sayfasından yönetilir */
+export interface ProjectTypeItem {
+  id: string;
+  name: string;
+  order: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 /** Proje hizmet kalemleri için ana kategori + alt kategoriler */
 export interface ServiceCategory {
   id: string;
@@ -28,20 +37,20 @@ export interface Person {
   taxNumber?: string;
   companyName?: string;
   notes?: string;
-  /** Bir kiÅŸi aynÄ± anda birden fazla role sahip olabilir */
+  /** Bir kişi aynı anda birden fazla role sahip olabilir */
   categoryIds: string[];
   createdAt: Date;
   updatedAt: Date;
 }
 
-// â”€â”€â”€ PROJE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// --- PROJE -------------------------------------------------------------------
 export type ProjectStatus =
   | "draft"       // Taslak
   | "active"      // Aktif
   | "on_hold"     // Beklemede
-  | "completed"   // TamamlandÄ±
-  | "archived"    // ArÅŸivlendi
-  | "cancelled";  // Ä°ptal
+  | "completed"   // Tamamlandı
+  | "archived"    // Arşivlendi
+  | "cancelled";  // İptal
 
 export type ProjectType =
   | "architectural_project"
@@ -58,13 +67,12 @@ export interface Project {
   title: string;
   projectNo?: string;
   description?: string;
-  type: ProjectType;
+  type: string;   // stored as free string; display resolved from projectTypes or PROJECT_TYPE_LABELS
   status: ProjectStatus;
-  clientId: string;           // Ana iÅŸveren/mÃ¼ÅŸteri kiÅŸi ID
-  neighborhood?: string;      // Mahalle
-  parcel?: string;            // Ada / Parsel bilgisi
+  clientId: string;
+  neighborhood?: string;
+  parcel?: string;
   address?: string;
-  /** Paket fiyat: iÅŸverene sunulan toplam proje bedeli */
   contractAmount?: number;
   currency: "TRY";
   startDate?: Date;
@@ -75,34 +83,32 @@ export interface Project {
   updatedAt: Date;
 }
 
-// â”€â”€â”€ HÄ°ZMET KALEMÄ° (Proje iÃ§indeki satÄ±r) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// --- HİZMET KALEMİ -----------------------------------------------------------
 export type ServiceItemStatus =
-  | "not_started"          // BaÅŸlamadÄ±
-  | "site_review"          // YapÄ± Denetim Ä°ncelemesinde
-  | "revision_pending"     // Revize Bekliyor
-  | "municipality_review"  // Belediye Ä°ncelemesinde
-  | "approved";            // OnaylandÄ±
+  | "not_started"
+  | "site_review"
+  | "revision_pending"
+  | "municipality_review"
+  | "approved";
 
-/** Tekil Ã¶deme taksiti (hem mÃ¼ellife Ã¶denen hem mÃ¼ÅŸteriden alÄ±nan iÃ§in) */
 export interface PaymentInstallment {
   id: string;
   amount: number;
-  dueDate?: string;    // "YYYY-MM-DD" ISO string
-  paidDate?: string;   // "YYYY-MM-DD" ISO string
+  dueDate?: string;
+  paidDate?: string;
   isPaid: boolean;
   notes?: string;
 }
 
-/** Bir projedeki bir hizmet kalemi */
 export interface ProjectServiceItem {
   id: string;
   projectId: string;
-  serviceName: string;          // "Mimari", "Statik", "EKB" vb.
-  muellif?: string;             // KiÅŸi ID - hizmeti alacaÄŸÄ±mÄ±z kiÅŸi
-  cost: number;                 // MÃ¼ellife Ã¶denecek maliyet
-  plannedPaymentDate?: string;  // Planlanan Ã¶deme gÃ¼nÃ¼
-  actualPaymentDate?: string;   // GerÃ§ekleÅŸen Ã¶deme gÃ¼nÃ¼
-  paymentInstallments: PaymentInstallment[]; // ParÃ§a parÃ§a Ã¶demeler
+  serviceName: string;
+  muellif?: string;
+  cost: number;
+  plannedPaymentDate?: string;
+  actualPaymentDate?: string;
+  paymentInstallments: PaymentInstallment[];
   status: ServiceItemStatus;
   notes?: string;
   order: number;
@@ -110,8 +116,21 @@ export interface ProjectServiceItem {
   updatedAt: Date;
 }
 
-/** Ä°ÅŸverenin bize yapacaÄŸÄ± Ã¶deme planÄ± */
-/** Ek harcama: isverenin adina yapilan, isverene yansitilacak gider */
+export interface ProjectPaymentPlan {
+  id: string;
+  projectId: string;
+  title: string;
+  amount: number;
+  dueDate?: string;
+  paidAmount: number;
+  paidDate?: string;
+  isPaid: boolean;
+  notes?: string;
+  order: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export interface ProjectExpense {
   id: string;
   projectId: string;
@@ -125,22 +144,7 @@ export interface ProjectExpense {
   updatedAt: Date;
 }
 
-export interface ProjectPaymentPlan {
-  id: string;
-  projectId: string;
-  title: string;       // "Avans", "1. Ã–deme" vb.
-  amount: number;      // Planlanan tutar
-  dueDate?: string;    // Vade tarihi
-  paidAmount: number;  // GerÃ§ekleÅŸen Ã¶deme
-  paidDate?: string;   // GerÃ§ekleÅŸen tarih
-  isPaid: boolean;
-  notes?: string;
-  order: number;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-// â”€â”€â”€ GÃ–REV â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// --- GÖREV -------------------------------------------------------------------
 export type TaskStatus = "todo" | "in_progress" | "done" | "cancelled";
 export type TaskPriority = "low" | "medium" | "high";
 
@@ -159,7 +163,7 @@ export interface Task {
   updatedAt: Date;
 }
 
-// â”€â”€â”€ FÄ°NANSAL Ä°ÅLEMLER â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// --- FİNANSAL İŞLEMLER -------------------------------------------------------
 export type TransactionType = "income" | "expense";
 
 export type TransactionCategory =
@@ -192,7 +196,7 @@ export interface Transaction {
   updatedAt: Date;
 }
 
-// â”€â”€â”€ TEKLÄ°F â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// --- TEKLİF ------------------------------------------------------------------
 export type QuoteStatus = "draft" | "sent" | "accepted" | "rejected" | "expired";
 
 export interface QuoteItem {
@@ -221,9 +225,28 @@ export interface Quote {
   updatedAt: Date;
 }
 
-// â”€â”€â”€ AYARLAR â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// --- AYARLAR -----------------------------------------------------------------
+export interface CompanySettings {
+  name: string;
+  logoUrl?: string;
+  address?: string;
+  phone?: string;
+  email?: string;
+  website?: string;
+  taxNumber?: string;
+  taxOffice?: string;
+  iban?: string;
+  bankName?: string;
+  updatedAt: Date;
+}
 
-// --- OZALIT ISLERI ---
+export type NavItem = {
+  label: string;
+  href: string;
+  icon: string;
+};
+
+// --- OZALİT İŞLERİ -----------------------------------------------------------
 export type OzalitSize = "A0" | "A1" | "A2" | "A3" | "A4" | "other";
 export type OzalitServiceType = "print" | "copy" | "scan" | "binding" | "laminate" | "other";
 
@@ -247,15 +270,15 @@ export interface OzalitJob {
 }
 
 export const OZALIT_SERVICE_LABELS: Record<OzalitServiceType, string> = {
-  print: "Baski", copy: "Kopya", scan: "Tarama",
-  binding: "Cilt", laminate: "Laminasyon", other: "Diger",
+  print: "Baskı", copy: "Kopya", scan: "Tarama",
+  binding: "Cilt", laminate: "Laminasyon", other: "Diğer",
 };
 
 export const OZALIT_SIZE_LABELS: Record<OzalitSize, string> = {
-  A0: "A0", A1: "A1", A2: "A2", A3: "A3", A4: "A4", other: "Diger",
+  A0: "A0", A1: "A1", A2: "A2", A3: "A3", A4: "A4", other: "Diğer",
 };
 
-// --- TUFAN OZEL ISLER ---
+// --- TUFAN ÖZEL İŞLER --------------------------------------------------------
 export type TufanTransactionType = "income" | "expense";
 export type TufanTransactionCategory = "receivable" | "payable" | "payment" | "collection" | "other";
 
@@ -277,64 +300,44 @@ export interface TufanTransaction {
 }
 
 export const TUFAN_CATEGORY_LABELS: Record<TufanTransactionCategory, string> = {
-  receivable: "Alacak", payable: "Verecek", payment: "Yapilan Odeme",
-  collection: "Tahsilat", other: "Diger",
+  receivable: "Alacak", payable: "Verecek", payment: "Yapılan Ödeme",
+  collection: "Tahsilat", other: "Diğer",
 };
 
-export interface CompanySettings {
-  name: string;
-  logoUrl?: string;
-  address?: string;
-  phone?: string;
-  email?: string;
-  website?: string;
-  taxNumber?: string;
-  taxOffice?: string;
-  iban?: string;
-  bankName?: string;
-  updatedAt: Date;
-}
-
-export type NavItem = {
-  label: string;
-  href: string;
-  icon: string;
-};
-
-// â”€â”€â”€ LABEL MAPS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// --- LABEL MAPS --------------------------------------------------------------
 export const PROJECT_STATUS_LABELS: Record<ProjectStatus, string> = {
-  draft: "Taslak",
-  active: "Aktif",
-  on_hold: "Beklemede",
-  completed: "TamamlandÄ±",
-  archived: "ArÅŸivlendi",
-  cancelled: "Ä°ptal",
+  draft:     "Taslak",
+  active:    "Aktif",
+  on_hold:   "Beklemede",
+  completed: "Tamamlandı",
+  archived:  "Arşivlendi",
+  cancelled: "İptal",
 };
 
 export const PROJECT_TYPE_LABELS: Record<ProjectType, string> = {
   architectural_project: "Mimari Proje",
-  static_project: "Statik Proje",
-  electrical_project: "Elektrik Projesi",
-  mechanical_project: "Mekanik Proje",
-  permit_application: "Ruhsat BaÅŸvurusu",
-  site_supervision: "Åantiye Denetimi",
-  consultation: "DanÄ±ÅŸmanlÄ±k",
-  other: "DiÄŸer",
+  static_project:        "Statik Proje",
+  electrical_project:    "Elektrik Projesi",
+  mechanical_project:    "Mekanik Proje",
+  permit_application:    "Ruhsat Başvurusu",
+  site_supervision:      "Şantiye Denetimi",
+  consultation:          "Danışmanlık",
+  other:                 "Diğer",
 };
 
 export const TASK_STATUS_LABELS: Record<TaskStatus, string> = {
-  todo: "YapÄ±lacak",
+  todo:        "Yapılacak",
   in_progress: "Devam Ediyor",
-  done: "TamamlandÄ±",
-  cancelled: "Ä°ptal",
+  done:        "Tamamlandı",
+  cancelled:   "İptal",
 };
 
 export const SERVICE_ITEM_STATUS_LABELS: Record<ServiceItemStatus, string> = {
-  not_started: "BaÅŸlamadÄ±",
-  site_review: "YapÄ± Denetim Ä°ncelemesinde",
-  revision_pending: "Revize Bekliyor",
-  municipality_review: "Belediye Ä°ncelemesinde",
-  approved: "OnaylandÄ±",
+  not_started:         "Başlamadı",
+  site_review:         "Yapı Denetim İncelemesinde",
+  revision_pending:    "Revize Bekliyor",
+  municipality_review: "Belediye İncelemesinde",
+  approved:            "Onaylandı",
 };
 
 export const SERVICE_ITEM_STATUS_COLORS: Record<ServiceItemStatus, string> = {
@@ -346,20 +349,20 @@ export const SERVICE_ITEM_STATUS_COLORS: Record<ServiceItemStatus, string> = {
 };
 
 export const TRANSACTION_CATEGORY_LABELS: Record<TransactionCategory, string> = {
-  project_fee: "Proje Bedeli",
-  consultation_fee: "DanÄ±ÅŸmanlÄ±k Ãœcreti",
-  permit_fee: "Ruhsat Ãœcreti",
-  product_sale: "Mal/ÃœrÃ¼n SatÄ±ÅŸÄ±",
-  other_income: "DiÄŸer Gelir",
-  subcontractor: "Alt YÃ¼klenici Ã–demesi",
-  material: "Malzeme AlÄ±mÄ±",
-  office_expense: "Ofis Gideri",
-  tax: "Vergi",
-  salary: "MaaÅŸ",
-  other_expense: "DiÄŸer Gider",
+  project_fee:      "Proje Bedeli",
+  consultation_fee: "Danışmanlık Ücreti",
+  permit_fee:       "Ruhsat Ücreti",
+  product_sale:     "Mal/Ürün Satışı",
+  other_income:     "Diğer Gelir",
+  subcontractor:    "Alt Yüklenici Ödemesi",
+  material:         "Malzeme Alımı",
+  office_expense:   "Ofis Gideri",
+  tax:              "Vergi",
+  salary:           "Maaş",
+  other_expense:    "Diğer Gider",
 };
 
-/** Standarart olarak her yeni projede oluÅŸturulacak hizmet kalemleri */
+/** Standart olarak her yeni projede oluşturulacak hizmet kalemleri */
 export const DEFAULT_SERVICE_NAMES = [
   "Jeoloji",
   "Mimari",
@@ -369,7 +372,7 @@ export const DEFAULT_SERVICE_NAMES = [
   "Harita",
   "EKB",
   "Akustik",
-  "3D GÃ¶rselleÅŸtirme",
-  "Ã‡Ä±ktÄ±",
-  "DiÄŸer",
+  "3D Görselleştirme",
+  "Çıktı",
+  "Diğer",
 ] as const;

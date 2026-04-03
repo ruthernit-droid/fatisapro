@@ -1,8 +1,9 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect } from "react";
 import { FileText, Eye, X, ExternalLink, FolderOpen, Clock, CheckCircle, XCircle } from "lucide-react";
-import { getQuotes } from "@/lib/firestore/quotes";
+import { getQuotes, updateQuote } from "@/lib/firestore/quotes";
+import { updateProject } from "@/lib/firestore/projects";
 import { Quote } from "@/types";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
@@ -12,7 +13,7 @@ const TEMPLATES = [
   {
     id: 1,
     name: "Dark Luxury",
-    desc: "Koyu zemin, altÄ±n vurgular. Prestijli tasarÄ±m.",
+    desc: "Koyu zemin, altın vurgular. Prestijli tasarım.",
     accent: "from-neutral-900 to-neutral-800",
     badge: "bg-yellow-500/20 text-yellow-400",
     src: "/quote-templates/template1.html",
@@ -28,7 +29,7 @@ const TEMPLATES = [
   {
     id: 3,
     name: "Modern Geometric",
-    desc: "YeÅŸil/teal vurgular, geometrik Ã¶ÄŸeler.",
+    desc: "Yeşil/teal vurgular, geometrik öğeler.",
     accent: "from-emerald-50 to-white border border-emerald-100",
     badge: "bg-emerald-100 text-emerald-700",
     src: "/quote-templates/template3.html",
@@ -36,8 +37,8 @@ const TEMPLATES = [
 ];
 
 const STATUS_LABELS: Record<string, string> = {
-  draft: "Taslak", sent: "GÃ¶nderildi", accepted: "Kabul Edildi",
-  rejected: "Reddedildi", expired: "SÃ¼resi Doldu",
+  draft: "Taslak", sent: "Gönderildi", accepted: "Kabul Edildi",
+  rejected: "Reddedildi", expired: "Süresi Doldu",
 };
 const STATUS_COLORS: Record<string, string> = {
   draft: "bg-neutral-100 text-neutral-600",
@@ -51,24 +52,42 @@ export default function TekliflerPage() {
   const [preview, setPreview] = useState<(typeof TEMPLATES)[0] | null>(null);
   const [quotes, setQuotes] = useState<Quote[]>([]);
   const [loadingQuotes, setLoadingQuotes] = useState(true);
+  const [accepting, setAccepting] = useState<string | null>(null);
 
   useEffect(() => {
     getQuotes()
       .then(setQuotes)
-      .catch(() => toast.error("Teklifler yÃ¼klenemedi"))
+      .catch(() => toast.error("Teklifler yüklenemedi"))
       .finally(() => setLoadingQuotes(false));
   }, []);
+
+  async function handleAccept(quote: Quote) {
+    if (!confirm(`"${quote.title}" teklifini kabul ediyorsunuz. Proje aktif hale getirilecek. Onaylıyor musunuz?`)) return;
+    setAccepting(quote.id);
+    try {
+      await updateQuote(quote.id, { status: "accepted" });
+      if (quote.projectId) {
+        await updateProject(quote.projectId, { status: "active" });
+      }
+      setQuotes((prev) => prev.map((q) => q.id === quote.id ? { ...q, status: "accepted" } : q));
+      toast.success("Teklif kabul edildi, proje aktifleştirildi.");
+    } catch {
+      toast.error("İşlem başarısız.");
+    } finally {
+      setAccepting(null);
+    }
+  }
 
   return (
     <div className="p-6 max-w-5xl mx-auto space-y-8">
       <div>
         <h1 className="text-xl font-bold text-neutral-900">Teklifler</h1>
         <p className="text-sm text-neutral-500 mt-0.5">
-          Proje teklifleri ve boÅŸ ÅŸablonlar
+          Proje teklifleri ve boş şablonlar
         </p>
       </div>
 
-      {/* â”€â”€ Saved Quotes from Projects â”€â”€ */}
+      {/* ── Saved Quotes from Projects ── */}
       <div>
         <h2 className="text-sm font-semibold text-neutral-700 mb-3 flex items-center gap-2">
           <FolderOpen className="h-4 w-4 text-indigo-500" />
@@ -81,9 +100,9 @@ export default function TekliflerPage() {
         ) : quotes.length === 0 ? (
           <div className="rounded-xl border-2 border-dashed border-neutral-200 py-10 text-center">
             <FileText className="h-8 w-8 mx-auto text-neutral-300 mb-2" />
-            <p className="text-sm text-neutral-500 font-medium">HenÃ¼z teklif oluÅŸturulmadÄ±</p>
+            <p className="text-sm text-neutral-500 font-medium">Henüz teklif oluşturulmadı</p>
             <p className="text-xs text-neutral-400 mt-1">
-              Proje detayÄ±nda &ldquo;Teklif GÃ¶nder&rdquo; butonunu kullanarak teklif hazÄ±rlayÄ±n.
+              Proje detayında &ldquo;Teklif Gönder&rdquo; butonunu kullanarak teklif hazırlayın.
             </p>
           </div>
         ) : (
@@ -108,7 +127,7 @@ export default function TekliflerPage() {
                         {q.createdAt.toLocaleDateString("tr-TR")}
                       </span>
                       <span className="text-xs font-medium text-neutral-700">
-                        {q.grandTotal.toLocaleString("tr-TR", { minimumFractionDigits: 2 })} â‚º
+                        {q.grandTotal.toLocaleString("tr-TR", { minimumFractionDigits: 2 })} ₺
                       </span>
                     </div>
                   </div>
@@ -118,8 +137,18 @@ export default function TekliflerPage() {
                       className="shrink-0 flex items-center gap-1.5 text-xs font-medium text-indigo-600 hover:text-indigo-800 px-3 py-1.5 rounded-lg hover:bg-indigo-50 transition-colors"
                     >
                       <Eye className="h-3.5 w-3.5" />
-                      Tekrar AÃ§
+                      Tekrar Aç
                     </Link>
+                  )}
+                  {q.status === "sent" && (
+                    <button
+                      onClick={() => handleAccept(q)}
+                      disabled={accepting === q.id}
+                      className="shrink-0 flex items-center gap-1.5 text-xs font-medium text-green-700 hover:text-green-900 px-3 py-1.5 rounded-lg hover:bg-green-50 border border-green-200 transition-colors disabled:opacity-50"
+                    >
+                      <CheckCircle className="h-3.5 w-3.5" />
+                      {accepting === q.id ? "..." : "Kabul Et"}
+                    </button>
                   )}
                 </div>
               ))}
@@ -128,11 +157,11 @@ export default function TekliflerPage() {
         )}
       </div>
 
-      {/* â”€â”€ Blank Templates â”€â”€ */}
+      {/* ── Blank Templates ── */}
       <div>
         <h2 className="text-sm font-semibold text-neutral-700 mb-3 flex items-center gap-2">
           <FileText className="h-4 w-4 text-neutral-500" />
-          BoÅŸ Åablonlar
+          Boş Şablonlar
           <span className="text-xs text-neutral-400 font-normal">(manuel doldurulabilir)</span>
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -150,7 +179,7 @@ export default function TekliflerPage() {
                 </div>
               </div>
               <div className="p-4">
-                <p className="text-sm font-semibold text-neutral-800 mb-1">Åablon {t.id}: {t.name}</p>
+                <p className="text-sm font-semibold text-neutral-800 mb-1">Şablon {t.id}: {t.name}</p>
                 <p className="text-xs text-neutral-500 mb-3">{t.desc}</p>
                 <div className="flex gap-2">
                   <button
@@ -158,14 +187,14 @@ export default function TekliflerPage() {
                     className="flex-1 flex items-center justify-center gap-1.5 rounded-lg bg-indigo-600 text-white text-xs font-semibold py-1.5 hover:bg-indigo-700 transition-colors"
                   >
                     <Eye className="h-3.5 w-3.5" />
-                    Ã–nizle
+                    Önizle
                   </button>
                   <a
                     href={t.src}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center justify-center rounded-lg border border-neutral-200 px-2 py-1.5 text-neutral-500 hover:text-indigo-600 hover:border-indigo-300 transition-colors"
-                    title="Yeni sekmede aÃ§"
+                    title="Yeni sekmede aç"
                   >
                     <ExternalLink className="h-3.5 w-3.5" />
                   </a>
@@ -175,7 +204,7 @@ export default function TekliflerPage() {
           ))}
         </div>
         <p className="text-xs text-neutral-400 mt-3">
-          Proje verilerinden otomatik teklif oluÅŸturmak iÃ§in proje detayÄ±nda &ldquo;Teklif GÃ¶nder&rdquo; butonunu kullanÄ±n.
+          Proje verilerinden otomatik teklif oluşturmak için proje detayında &ldquo;Teklif Gönder&rdquo; butonunu kullanın.
         </p>
       </div>
 
@@ -186,9 +215,9 @@ export default function TekliflerPage() {
             <div className="flex items-center gap-3">
               <FileText className="h-4 w-4 text-indigo-400" />
               <span className="text-sm font-semibold text-white">
-                Åablon {preview.id}: {preview.name}
+                Şablon {preview.id}: {preview.name}
               </span>
-              <span className="text-xs text-neutral-400">â€” SaÄŸ panelden dÃ¼zenleyin</span>
+              <span className="text-xs text-neutral-400">â€” Sağ panelden düzenleyin</span>
             </div>
             <div className="flex items-center gap-2">
               <a
@@ -212,7 +241,7 @@ export default function TekliflerPage() {
           <iframe
             src={preview.src}
             className="flex-1 w-full border-0"
-            title={`Teklif Åablonu ${preview.id}`}
+            title={`Teklif Şablonu ${preview.id}`}
           />
         </div>
       )}

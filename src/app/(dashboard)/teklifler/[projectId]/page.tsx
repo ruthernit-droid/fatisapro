@@ -65,11 +65,25 @@ export default function QuoteTemplateSelectorPage() {
     if (!project) return;
     const total = project.contractAmount || serviceItems.reduce((s, i) => s + (i.cost || 0), 0);
     const data = {
-      firm:    settings?.name    || "",
-      project: project.title,
-      client:  client?.name      || "",
-      quote:   quoteNo,
-      items:   serviceItems.map((i) => ({ name: i.serviceName, price: i.cost || 0 })),
+      firm:         settings?.name        || "",
+      firmAddress:  settings?.address     || "",
+      firmPhone:    settings?.phone       || "",
+      firmEmail:    settings?.email       || "",
+      firmTax:      settings?.taxNumber && settings.taxOffice
+                      ? `${settings.taxNumber} / ${settings.taxOffice}`
+                      : settings?.taxNumber || "",
+      firmIban:     settings?.iban        || "",
+      firmBankName: settings?.bankName    || "",
+      project:      project.title,
+      projectNo:    project.projectNo     || "",
+      client:       client?.name          || "",
+      clientPhone:  client?.phone         || "",
+      clientEmail:  client?.email         || "",
+      clientAddress:client?.address       || "",
+      clientTax:    client?.taxNumber     || "",
+      clientCompany:client?.companyName   || "",
+      quote:        quoteNo,
+      items:        serviceItems.map((i) => ({ name: i.serviceName, price: i.cost || 0 })),
       total,
     };
     const encoded = btoa(encodeURIComponent(JSON.stringify(data)));

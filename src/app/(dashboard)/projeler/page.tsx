@@ -4,16 +4,19 @@ import { useState, useEffect, useCallback } from "react";
 import {
   Project,
   ProjectStatus,
-  ProjectType,
   Person,
   PersonCategory,
+  ProjectPaymentPlan,
   PROJECT_STATUS_LABELS,
   PROJECT_TYPE_LABELS,
+  ProjectType,
 } from "@/types";
 import { getProjects, addProject } from "@/lib/firestore/projects";
 import { getPersons } from "@/lib/firestore/persons";
 import { createDefaultServiceItems } from "@/lib/firestore/projectServiceItems";
+import { getAllPaymentPlans } from "@/lib/firestore/projectPaymentPlans";
 import { useCategories } from "@/hooks/useCategories";
+import { useProjectTypes } from "@/hooks/useProjectTypes";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -24,6 +27,9 @@ import {
   Calendar,
   User,
   TrendingUp,
+  ChevronDown,
+  ChevronUp,
+  Clock,
 } from "lucide-react";
 import Link from "next/link";
 import { cn, formatCurrency } from "@/lib/utils";
@@ -42,23 +48,33 @@ const STATUS_COLORS: Record<ProjectStatus, string> = {
 export default function ProjelerPage() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [persons, setPersons] = useState<Person[]>([]);
+  const [paymentPlans, setPaymentPlans] = useState<ProjectPaymentPlan[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState<ProjectStatus | "all">("all");
   const [showDialog, setShowDialog] = useState(false);
+  const [showUpcoming, setShowUpcoming] = useState(true);
   const { categories } = useCategories();
+  const { projectTypes } = useProjectTypes();
 
   const loadData = useCallback(() => {
-    Promise.all([getProjects(), getPersons()])
-      .then(([p, pe]) => {
+    Promise.all([getProjects(), getPersons(), getAllPaymentPlans()])
+      .then(([p, pe, pp]) => {
         setProjects(p);
         setPersons(pe);
+        setPaymentPlans(pp);
       })
-      .catch(() => toast.error("Projeler yÃ¼klenemedi"))
+      .catch(() => toast.error("Projeler yüklenemedi"))
       .finally(() => setLoading(false));
   }, []);
 
   useEffect(() => { loadData(); }, [loadData]);
+
+  function resolveProjectType(type: string): string {
+    const pt = projectTypes.find((t) => t.id === type || t.name === type);
+    if (pt) return pt.name;
+    return PROJECT_TYPE_LABELS[type as ProjectType] || type;
+  }
 
   const filtered = projects.filter((p) => {
     const matchSearch =
@@ -78,7 +94,7 @@ export default function ProjelerPage() {
 
   async function handleCreateProject(data: {
     title: string;
-    type: ProjectType;
+    type: string;
     neighborhood: string;
     parcel: string;
     clientId: string;
@@ -96,10 +112,15 @@ export default function ProjelerPage() {
     });
     // Standart hizmet kalemlerini otomatik ekle
     await createDefaultServiceItems(projectId);
-    toast.success("Proje oluÅŸturuldu");
+    toast.success("Proje oluşturuldu");
     setShowDialog(false);
     loadData();
   }
+
+  const activeProjectIds = new Set(projects.filter((p) => p.status === "active").map((p) => p.id));
+  const upcomingPayments = paymentPlans
+    .filter((pp) => !pp.isPaid && activeProjectIds.has(pp.projectId))
+    .sort((a, b) => (a.dueDate || "").localeCompare(b.dueDate || ""));
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
@@ -107,7 +128,7 @@ export default function ProjelerPage() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-xl font-bold text-neutral-900">Projeler</h1>
-          <p className="text-sm text-neutral-500 mt-0.5">{projects.length} proje kayÄ±tlÄ±</p>
+          <p className="text-sm text-neutral-500 mt-0.5">{projects.length} proje kayıtlı</p>
         </div>
         <Button onClick={() => setShowDialog(true)}>
           <Plus className="h-4 w-4" />
@@ -132,13 +153,64 @@ export default function ProjelerPage() {
         ))}
       </div>
 
+      {/* Upcoming Payments */}
+      {upcomingPayments.length > 0 && (
+        <div className="rounded-xl border border-amber-200 bg-amber-50 overflow-hidden mb-6">
+          <button
+            onClick={() => setShowUpcoming((v) => !v)}
+            className="w-full flex items-center justify-between px-4 py-3 text-left"
+          >
+            <div className="flex items-center gap-2">
+              <Clock className="h-4 w-4 text-amber-600" />
+              <span className="text-sm font-semibold text-amber-800">
+                Yaklaşan Ödemeler
+              </span>
+              <span className="text-xs bg-amber-200 text-amber-800 px-2 py-0.5 rounded-full font-medium">
+                {upcomingPayments.length}
+              </span>
+            </div>
+            {showUpcoming ? <ChevronUp className="h-4 w-4 text-amber-600" /> : <ChevronDown className="h-4 w-4 text-amber-600" />}
+          </button>
+          {showUpcoming && (
+            <div className="divide-y divide-amber-100">
+              {upcomingPayments.slice(0, 10).map((pp) => {
+                const proj = projects.find((p) => p.id === pp.projectId);
+                return (
+                  <div key={pp.id} className="flex items-center gap-3 px-4 py-2.5 hover:bg-amber-100/60">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-medium text-neutral-800 truncate">{pp.title}</p>
+                      {proj && (
+                        <Link href={`/projeler/${proj.id}`} className="text-xs text-indigo-600 hover:underline truncate block">
+                          {proj.title}
+                        </Link>
+                      )}
+                    </div>
+                    <div className="text-right shrink-0">
+                      <p className="text-xs font-semibold text-neutral-900">{formatCurrency(pp.amount)}</p>
+                      {pp.dueDate && (
+                        <p className="text-[10px] text-neutral-500">
+                          {new Date(pp.dueDate).toLocaleDateString("tr-TR")}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+              {upcomingPayments.length > 10 && (
+                <p className="text-xs text-center text-neutral-500 py-2">+{upcomingPayments.length - 10} daha...</p>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Search */}
       <div className="relative mb-5">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-400" />
         <Input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Proje adÄ± ile ara..."
+          placeholder="Proje adı ile ara..."
           className="pl-9"
         />
       </div>
@@ -155,15 +227,15 @@ export default function ProjelerPage() {
           </div>
           {projects.length === 0 ? (
             <>
-              <p className="text-base font-medium text-neutral-700">HenÃ¼z proje eklenmedi</p>
-              <p className="text-sm text-neutral-400 mt-1 mb-4">Ä°lk projeyi ekleyerek baÅŸlayÄ±n.</p>
+              <p className="text-base font-medium text-neutral-700">Henüz proje eklenmedi</p>
+              <p className="text-sm text-neutral-400 mt-1 mb-4">İlk projeyi ekleyerek başlayın.</p>
               <Button onClick={() => setShowDialog(true)}>
                 <Plus className="h-4 w-4" />
-                Ä°lk Projeyi Ekle
+                İlk Projeyi Ekle
               </Button>
             </>
           ) : (
-            <p className="text-base font-medium text-neutral-700">Arama sonucu bulunamadÄ±</p>
+            <p className="text-base font-medium text-neutral-700">Arama sonucu bulunamadı</p>
           )}
         </div>
       ) : (
@@ -190,7 +262,7 @@ export default function ProjelerPage() {
                     </Badge>
                   </div>
                   <div className="flex items-center gap-4 mt-1.5 flex-wrap">
-                    <span className="text-xs text-neutral-500">{PROJECT_TYPE_LABELS[project.type]}</span>
+                    <span className="text-xs text-neutral-500">{resolveProjectType(project.type)}</span>
                     {client && (
                       <span className="flex items-center gap-1 text-xs text-neutral-500">
                         <User className="h-3 w-3" />
@@ -221,6 +293,7 @@ export default function ProjelerPage() {
         onSave={handleCreateProject}
         persons={persons}
         categories={categories}
+        projectTypes={projectTypes}
         onPersonAdded={(person) => setPersons((prev) => [...prev, person])}
       />
     </div>

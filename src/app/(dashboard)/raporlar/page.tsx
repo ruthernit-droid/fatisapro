@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState, useMemo } from "react";
 import { getTransactions } from "@/lib/firestore/transactions";
@@ -30,7 +30,7 @@ import {
 import toast from "react-hot-toast";
 
 function formatMoney(n: number) {
-  return n.toLocaleString("tr-TR", { minimumFractionDigits: 2 }) + " â‚º";
+  return n.toLocaleString("tr-TR", { minimumFractionDigits: 2 }) + " ₺";
 }
 
 function toDateStr(d: Date | string | undefined | null): string | null {
@@ -79,7 +79,7 @@ export default function RaporlarPage() {
         setServiceItems(si);
         setExpenses(ex);
       })
-      .catch(() => toast.error("Raporlar yÃ¼klenemedi"))
+      .catch(() => toast.error("Raporlar yüklenemedi"))
       .finally(() => setLoading(false));
   }, []);
 
@@ -159,14 +159,14 @@ export default function RaporlarPage() {
         </div>
         <div>
           <h1 className="text-xl font-bold text-neutral-900">Raporlar</h1>
-          <p className="text-sm text-neutral-500">Genel finansal Ã¶zet</p>
+          <p className="text-sm text-neutral-500">Genel finansal özet</p>
         </div>
       </div>
 
       {/* Date range filter */}
       <div className="mb-6 flex flex-wrap items-center gap-3 rounded-xl border border-neutral-200 bg-white p-4">
         <Calendar className="h-4 w-4 text-neutral-400 shrink-0" />
-        <span className="text-sm font-medium text-neutral-600">Tarih AralÄ±ÄŸÄ±:</span>
+        <span className="text-sm font-medium text-neutral-600">Tarih Aralığı:</span>
         <input
           type="date"
           value={dateFrom}
@@ -190,7 +190,7 @@ export default function RaporlarPage() {
               Temizle
             </button>
             <span className="ml-auto rounded-full bg-indigo-50 px-2.5 py-1 text-xs text-indigo-600">
-              FiltrelenmiÅŸ gÃ¶rÃ¼nÃ¼m
+              Filtrelenmiş görünüm
             </span>
           </>
         )}
@@ -207,18 +207,18 @@ export default function RaporlarPage() {
             <div className="rounded-xl border border-green-200 bg-green-50 p-5">
               <div className="flex items-center gap-2 mb-2">
                 <TrendingUp className="h-4 w-4 text-green-600" />
-                <span className="text-xs font-medium text-green-700">Ä°ÅŸlem Gelirleri</span>
+                <span className="text-xs font-medium text-green-700">İşlem Gelirleri</span>
               </div>
               <p className="text-2xl font-bold text-green-700">{formatMoney(totalIncome)}</p>
-              <p className="text-xs text-green-600 mt-1">Finansal iÅŸlemler</p>
+              <p className="text-xs text-green-600 mt-1">Finansal işlemler</p>
             </div>
             <div className="rounded-xl border border-red-200 bg-red-50 p-5">
               <div className="flex items-center gap-2 mb-2">
                 <TrendingDown className="h-4 w-4 text-red-600" />
-                <span className="text-xs font-medium text-red-700">Ä°ÅŸlem Giderleri</span>
+                <span className="text-xs font-medium text-red-700">İşlem Giderleri</span>
               </div>
               <p className="text-2xl font-bold text-red-700">{formatMoney(totalExpense)}</p>
-              <p className="text-xs text-red-600 mt-1">Finansal iÅŸlemler</p>
+              <p className="text-xs text-red-600 mt-1">Finansal işlemler</p>
             </div>
             <div className="rounded-xl border border-teal-200 bg-teal-50 p-5">
               <div className="flex items-center gap-2 mb-2">
@@ -244,7 +244,7 @@ export default function RaporlarPage() {
                     netProfit >= 0 ? "text-indigo-700" : "text-orange-700"
                   }`}
                 >
-                  Net KÃ¢r/Zarar
+                  Net Kâr/Zarar
                 </span>
               </div>
               <p
@@ -259,7 +259,7 @@ export default function RaporlarPage() {
                   netProfit >= 0 ? "text-indigo-600" : "text-orange-600"
                 }`}
               >
-                TÃ¼m kaynaklar
+                Tüm kaynaklar
               </p>
             </div>
           </div>
@@ -269,7 +269,7 @@ export default function RaporlarPage() {
             <div className="rounded-xl border border-neutral-200 bg-white p-5">
               <h2 className="mb-4 flex items-center gap-2 text-sm font-semibold text-neutral-800">
                 <Building2 className="h-4 w-4 text-teal-500" />
-                Proje BazlÄ± Finansal Ã–zet
+                Proje Bazlı Finansal Özet
               </h2>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                 <div className="rounded-lg border border-teal-100 bg-teal-50 p-3">
@@ -278,14 +278,14 @@ export default function RaporlarPage() {
                   <p className="text-xs text-teal-500 mt-0.5">Tahsil edilen</p>
                 </div>
                 <div className="rounded-lg border border-orange-100 bg-orange-50 p-3">
-                  <p className="text-xs font-medium text-orange-700 mb-1">MÃ¼ellif Maliyeti</p>
+                  <p className="text-xs font-medium text-orange-700 mb-1">Müellif Maliyeti</p>
                   <p className="text-lg font-bold text-orange-700">{formatMoney(muEllifMaliyet)}</p>
-                  <p className="text-xs text-orange-500 mt-0.5">Ã–denen taksitler</p>
+                  <p className="text-xs text-orange-500 mt-0.5">Ödenen taksitler</p>
                 </div>
                 <div className="rounded-lg border border-red-100 bg-red-50 p-3">
                   <p className="text-xs font-medium text-red-700 mb-1">Ek Harcamalar</p>
                   <p className="text-lg font-bold text-red-700">{formatMoney(ekHarcama)}</p>
-                  <p className="text-xs text-red-500 mt-0.5">Ã–denen masraflar</p>
+                  <p className="text-xs text-red-500 mt-0.5">Ödenen masraflar</p>
                 </div>
                 <div
                   className={`rounded-lg border p-3 ${
@@ -299,7 +299,7 @@ export default function RaporlarPage() {
                       projKar >= 0 ? "text-green-700" : "text-red-700"
                     }`}
                   >
-                    Net Proje KÃ¢rÄ±
+                    Net Proje Kârı
                   </p>
                   <p
                     className={`text-lg font-bold ${
@@ -313,7 +313,7 @@ export default function RaporlarPage() {
                       projKar >= 0 ? "text-green-500" : "text-red-500"
                     }`}
                   >
-                    Gelir âˆ’ maliyet
+                    Gelir − maliyet
                   </p>
                 </div>
               </div>
@@ -340,7 +340,7 @@ export default function RaporlarPage() {
               <div className="rounded-xl border border-neutral-200 bg-white p-5">
                 <div className="flex items-center gap-2 mb-2">
                   <Printer className="h-4 w-4 text-neutral-500" />
-                  <span className="text-xs font-medium text-neutral-600">Ozalit Ä°ÅŸ SayÄ±sÄ±</span>
+                  <span className="text-xs font-medium text-neutral-600">Ozalit İş Sayısı</span>
                 </div>
                 <p className="text-2xl font-bold text-neutral-800">{filteredOzalitJobs.length}</p>
                 <p className="text-xs text-neutral-400 mt-1">
@@ -435,11 +435,11 @@ export default function RaporlarPage() {
                   if (count === 0) return null;
                   const labels: Record<string, string> = {
                     active: "Aktif",
-                    completed: "TamamlandÄ±",
+                    completed: "Tamamlandı",
                     on_hold: "Beklemede",
                     draft: "Taslak",
-                    archived: "ArÅŸiv",
-                    cancelled: "Ä°ptal",
+                    archived: "Arşiv",
+                    cancelled: "İptal",
                   };
                   const colors: Record<string, string> = {
                     active: "bg-green-50 border-green-200 text-green-700",
@@ -463,7 +463,7 @@ export default function RaporlarPage() {
           {transactions.length === 0 && !hasProjectData && (
             <div className="rounded-xl border-2 border-dashed border-neutral-200 p-12 text-center">
               <BarChart3 className="h-8 w-8 text-neutral-300 mx-auto mb-3" />
-              <p className="text-sm text-neutral-500">RaporlarÄ± gÃ¶rmek iÃ§in Ã¶nce iÅŸlemler ekleyin.</p>
+              <p className="text-sm text-neutral-500">Raporları görmek için önce işlemler ekleyin.</p>
             </div>
           )}
         </div>
