@@ -208,6 +208,31 @@ export default function RaporlarPage() {
               </p>
             </div>
           )}
+
+          {/* Project status breakdown */}
+          {projects.length > 0 && (
+            <div className="rounded-xl border border-neutral-200 bg-white p-5">
+              <h2 className="text-sm font-semibold text-neutral-800 mb-4 flex items-center gap-2">
+                <FolderOpen className="h-4 w-4 text-indigo-500" />
+                Proje Durumu
+              </h2>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                {(["active", "completed", "on_hold", "draft", "archived", "cancelled"] as const).map((status) => {
+                  const count = projects.filter(p => p.status === status).length;
+                  if (count === 0) return null;
+                  const labels: Record<string, string> = { active: "Aktif", completed: "Tamamlandı", on_hold: "Beklemede", draft: "Taslak", archived: "Arşiv", cancelled: "İptal" };
+                  const colors: Record<string, string> = { active: "bg-green-50 border-green-200 text-green-700", completed: "bg-blue-50 border-blue-200 text-blue-700", on_hold: "bg-yellow-50 border-yellow-200 text-yellow-700", draft: "bg-neutral-50 border-neutral-200 text-neutral-600", archived: "bg-neutral-50 border-neutral-200 text-neutral-500", cancelled: "bg-red-50 border-red-200 text-red-600" };
+                  return (
+                    <div key={status} className={`rounded-lg border p-3 ${colors[status]}`}>
+                      <p className="text-lg font-bold">{count}</p>
+                      <p className="text-xs mt-0.5">{labels[status]}</p>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
         </div>
       )}
     </div>

@@ -44,7 +44,7 @@ import toast from "react-hot-toast";
 import {
   ArrowLeft, Pencil, Trash2, Plus, Archive,
   TrendingUp, TrendingDown, Wallet, User,
-  Receipt, CheckCircle, XCircle, Send,
+  Receipt, CheckCircle, XCircle, Send, Flag,
 } from "lucide-react";
 
 const STATUS_BADGE: Record<string, string> = {
@@ -200,6 +200,12 @@ export default function ProjectDetailPage() {
     setProject((p) => p ? { ...p, status: "cancelled" } : p);
     toast.success("Teklif reddedildi");
   }
+  async function handleComplete() {
+    if (!confirm("Proje tamamlandi olarak isaretlensin mi? Bu islem geri alinabilir.")) return;
+    await updateProject(projectId, { status: "completed" });
+    setProject((p) => p ? { ...p, status: "completed" } : p);
+    toast.success("Proje tamamlandi");
+  }
   async function handleArchive() {
     const unpaid = paymentPlans.filter((p) => !p.isPaid && p.amount > 0);
     if (unpaid.length > 0) { toast.error("Arsivlenemez: " + formatCurrency(unpaid.reduce((s, p) => s + (p.amount - p.paidAmount), 0)) + " tahsil edilmemis bakiye var."); return; }
@@ -247,6 +253,7 @@ export default function ProjectDetailPage() {
             <Button size="sm" onClick={handleAcceptQuote} className="bg-green-600 hover:bg-green-700 text-white"><CheckCircle className="h-3.5 w-3.5 mr-1" />Kabul Edildi</Button>
             <Button size="sm" variant="outline" onClick={handleRejectQuote} className="border-red-200 text-red-600 hover:bg-red-50"><XCircle className="h-3.5 w-3.5 mr-1" />Reddedildi</Button>
           </>}
+          {project.status === "active" && <Button size="sm" onClick={handleComplete} className="bg-blue-600 hover:bg-blue-700 text-white"><Flag className="h-3.5 w-3.5 mr-1" />Tamamla</Button>}
           {(project.status === "active" || project.status === "completed") && <Button variant="outline" size="sm" onClick={handleArchive}><Archive className="h-3.5 w-3.5 mr-1" />Arsivle</Button>}
           {project.status === "cancelled" && <Button variant="outline" size="sm" onClick={handleDeleteProject} className="border-red-200 text-red-600 hover:bg-red-50"><Trash2 className="h-3.5 w-3.5 mr-1" />Projeyi Sil</Button>}
         </div>
@@ -255,6 +262,7 @@ export default function ProjectDetailPage() {
       {project.status === "draft" && <div className="rounded-xl bg-amber-50 border border-amber-200 px-4 py-3 text-sm text-amber-800">Bu proje taslak asamasindadir. <strong>Teklif Gonder</strong> butonuna tiklayarak teklif belgesi hazirlayin, PDF alin ve gonderin.</div>}
       {project.status === "on_hold" && <div className="rounded-xl bg-yellow-50 border border-yellow-200 px-4 py-3 text-sm text-yellow-800">Teklif gonderildi, isverenden yanit bekleniyor. <strong>Kabul Edildi</strong> veya <strong>Reddedildi</strong> butonlarini kullanin.</div>}
       {project.status === "cancelled" && <div className="rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-800">Bu teklif reddedildi. Proje istatistiklere yansimiyor. Isterseniz projeyi kalici olarak silebilirsiniz.</div>}
+      {project.status === "completed" && <div className="rounded-xl bg-blue-50 border border-blue-200 px-4 py-3 text-sm text-blue-800">Bu proje tamamlandi. Odeme planini gozden gecirin ve tum odemeler alindiysa projeyi arsivleyebilirsiniz.</div>}
 
       {/* Finansal ozet */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">

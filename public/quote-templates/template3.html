@@ -204,6 +204,56 @@ function toggleRow(id,btn){btn.classList.toggle('on');const el=document.getEleme
 function toggleSec(id,btn){btn.classList.toggle('on');const el=document.getElementById(id);if(el)el.style.display=el.style.display==='none'?'':'none'}
 let ph=false;
 function toggleAllPrices(btn){ph=!ph;document.getElementById('proposal').classList.toggle('prices-hidden',ph);btn.textContent=ph?'✓ Fiyatları Göster':'⊘ Tüm Fiyatları Gizle';btn.style.borderColor=ph?'var(--a1)':'';btn.style.color=ph?'var(--a1)':''}
+
+// Auto-fill from URL params (passed by Fatisa Pro app)
+(function(){
+  try {
+    const raw = new URLSearchParams(location.search).get('d');
+    if (!raw) return;
+    const d = JSON.parse(decodeURIComponent(atob(raw)));
+    function findInput(label) {
+      for (const lbl of document.querySelectorAll('.fg label')) {
+        if (lbl.textContent.trim().startsWith(label)) return lbl.parentElement.querySelector('input,textarea');
+      }
+    }
+    function fire(inp, val) {
+      if (!inp) return;
+      inp.value = val;
+      inp.dispatchEvent(new Event('input', {bubbles: true}));
+    }
+    if (d.firm)    fire(findInput('Firma'),    d.firm);
+    if (d.project) fire(findInput('Proje'),    d.project);
+    if (d.client)  fire(findInput('Müşteri'),  d.client);
+    if (d.quote)   fire(findInput('Teklif'),   d.quote);
+    if (d.items && d.items.length) {
+      const tbody = document.querySelector('table.st2 tbody');
+      if (tbody) {
+        tbody.innerHTML = '';
+        const fmt = n => Math.round(n).toLocaleString('tr-TR');
+        d.items.forEach((item, i) => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = '<td><div class="sn">'+item.name+'</div><div class="sp">Kalem '+(i+1)+'</div></td>'
+            +'<td class="col-miktar">—</td>'
+            +'<td class="col-birim">₺'+fmt(item.price)+'</td>'
+            +'<td class="col-indirim">—</td>'
+            +'<td class="col-tutar">₺'+fmt(item.price)+'</td>';
+          tbody.appendChild(tr);
+        });
+      }
+    }
+    if (d.total > 0) {
+      const fmt = n => Math.round(n).toLocaleString('tr-TR');
+      const kdvAmt = Math.round(d.total * 0.20);
+      const grand  = d.total + kdvAmt;
+      const subEl   = document.querySelector('#sub-row .tval');
+      const kdvEl   = document.querySelector('#kdv-row .tval');
+      const grandEl = document.querySelector('.tg2 .tval');
+      if (subEl)   subEl.textContent   = '₺' + fmt(d.total);
+      if (kdvEl)   kdvEl.textContent   = '₺' + fmt(kdvAmt);
+      if (grandEl) grandEl.textContent = '₺' + fmt(grand);
+    }
+  } catch(e) {}
+})();
 </script>
 </body>
 </html>
