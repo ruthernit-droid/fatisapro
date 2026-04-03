@@ -42,14 +42,16 @@ export async function getProjectTypes(): Promise<ProjectTypeItem[]> {
   });
 }
 
-/** Idempotent seed — uses fixed IDs, won't overwrite if already exists */
+/** Idempotent seed — koleksiyon boşsa varsayılanları yükler, dolu ise dokunmaz */
 export async function seedDefaultProjectTypes(): Promise<void> {
+  const existing = await getDocs(collection(db, COL));
+  if (existing.size > 0) return;
   const batch = writeBatch(db);
   DEFAULTS.forEach((pt) => {
     const ref = doc(db, COL, pt.id);
     const { id, ...rest } = pt;
     void id;
-    batch.set(ref, { ...rest, createdAt: serverTimestamp(), updatedAt: serverTimestamp() }, { merge: true });
+    batch.set(ref, { ...rest, createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
   });
   await batch.commit();
 }

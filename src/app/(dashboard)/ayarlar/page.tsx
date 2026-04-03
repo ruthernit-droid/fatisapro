@@ -9,13 +9,15 @@ import { ServiceCategoryManager } from "@/components/settings/ServiceCategoryMan
 import { ProjectTypeManager } from "@/components/settings/ProjectTypeManager";
 import { CompanySettingsForm } from "@/components/settings/CompanySettings";
 import { AppSettingsPanel } from "@/components/settings/AppSettingsPanel";
-import { Settings, Building2, Layers, SlidersHorizontal } from "lucide-react";
+import { VeriDuzenlePanel } from "@/components/settings/VeriDuzenlePanel";
+import { Settings, Building2, Layers, SlidersHorizontal, ShieldAlert } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const TABS = [
   { id: "firma",       label: "Firma",    icon: Building2 },
   { id: "kategoriler", label: "Listeler", icon: Layers },
   { id: "uygulama",    label: "Uygulama", icon: SlidersHorizontal },
+  { id: "duzelt",      label: "Düzelt",   icon: ShieldAlert },
 ] as const;
 
 type TabId = typeof TABS[number]["id"];
@@ -89,6 +91,20 @@ export default function AyarlarPage() {
       {activeTab === "firma" && <CompanySettingsForm />}
       {activeTab === "kategoriler" && <KategorilerTab />}
       {activeTab === "uygulama" && <AppSettingsPanel />}
+      {activeTab === "duzelt" && (
+        <div className="rounded-xl border border-neutral-200 bg-white p-5">
+          <div className="flex items-center gap-2 mb-5">
+            <ShieldAlert className="h-4 w-4 text-red-500" />
+            <h2 className="text-sm font-semibold text-neutral-800">Veri Düzeltme</h2>
+          </div>
+          <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 mb-5">
+            <p className="text-xs text-amber-800 font-medium">
+              ⚠️ Bu bölümdeki işlemler kalıcı ve geri alınamaz. Lütfen dikkatli kullanın.
+            </p>
+          </div>
+          <VeriDuzenlePanel />
+        </div>
+      )}
     </div>
   );
 }

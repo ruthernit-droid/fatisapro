@@ -41,14 +41,16 @@ export async function getServiceCategories(): Promise<ServiceCategory[]> {
   });
 }
 
-/** İdempotent seed — sabit ID'ler kullanır, zaten varsa üzerine yazmaz */
+/** İdempotent seed — koleksiyon boşsa varsayılanları yükler, dolu ise hiçbir şeye dokunmaz */
 export async function seedDefaultServiceCategories(): Promise<void> {
+  const existing = await getDocs(query(collection(db, COL)));
+  if (existing.size > 0) return; // zaten verisi var, üzerine yazma
   const batch = writeBatch(db);
   DEFAULTS.forEach((cat) => {
     const ref = doc(db, COL, cat.id);
     const { id, ...rest } = cat;
     void id;
-    batch.set(ref, { ...rest, createdAt: serverTimestamp(), updatedAt: serverTimestamp() }, { merge: true });
+    batch.set(ref, { ...rest, createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
   });
   await batch.commit();
 }

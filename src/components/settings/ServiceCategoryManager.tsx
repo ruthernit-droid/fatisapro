@@ -18,8 +18,13 @@ export function ServiceCategoryManager({ categories, onAdd, onUpdate, onDelete }
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
   const [expandedId, setExpandedId] = useState<string | null>(null);
-  const [newSubcat, setNewSubcat] = useState("");
+  const [subcatInputs, setSubcatInputs] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
+
+  function getSubcatInput(catId: string) { return subcatInputs[catId] ?? ""; }
+  function setSubcatInput(catId: string, val: string) {
+    setSubcatInputs(prev => ({ ...prev, [catId]: val }));
+  }
 
   async function handleAdd() {
     if (!newName.trim() || busy) return;
@@ -53,11 +58,12 @@ export function ServiceCategoryManager({ categories, onAdd, onUpdate, onDelete }
   }
 
   async function handleAddSubcat(cat: ServiceCategory) {
-    if (!newSubcat.trim() || busy) return;
+    const val = getSubcatInput(cat.id);
+    if (!val.trim() || busy) return;
     setBusy(true);
     try {
-      await onUpdate(cat.id, { subcategories: [...cat.subcategories, newSubcat.trim()] });
-      setNewSubcat("");
+      await onUpdate(cat.id, { subcategories: [...cat.subcategories, val.trim()] });
+      setSubcatInput(cat.id, "");
       toast.success("Alt kategori eklendi");
     } catch (e) {
       console.error(e);
@@ -205,15 +211,15 @@ export function ServiceCategoryManager({ categories, onAdd, onUpdate, onDelete }
                 </div>
                 <div className="flex gap-2">
                   <input
-                    value={newSubcat}
-                    onChange={(e) => setNewSubcat(e.target.value)}
+                    value={getSubcatInput(cat.id)}
+                    onChange={(e) => setSubcatInput(cat.id, e.target.value)}
                     onKeyDown={(e) => { if (e.key === "Enter") handleAddSubcat(cat); }}
                     placeholder="Yeni alt kategori..."
                     className="flex-1 rounded-lg border border-neutral-200 px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   />
                   <button
                     onClick={() => handleAddSubcat(cat)}
-                    disabled={!newSubcat.trim() || busy}
+                    disabled={!getSubcatInput(cat.id).trim() || busy}
                     className="rounded-lg bg-indigo-50 px-3 py-1.5 text-xs font-medium text-indigo-700 hover:bg-indigo-100 disabled:opacity-40 transition-colors"
                   >
                     Ekle
