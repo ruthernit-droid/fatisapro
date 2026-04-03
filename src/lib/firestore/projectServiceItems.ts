@@ -50,6 +50,11 @@ function toServiceItem(data: Record<string, unknown>, id: string): ProjectServic
   };
 }
 
+export async function getAllServiceItems(): Promise<ProjectServiceItem[]> {
+  const snap = await getDocs(collection(db, COL));
+  return snap.docs.map((d) => toServiceItem(d.data() as Record<string, unknown>, d.id));
+}
+
 export async function getServiceItems(projectId: string): Promise<ProjectServiceItem[]> {
   const q = query(collection(db, COL), where("projectId", "==", projectId));
   const snap = await getDocs(q);

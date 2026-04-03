@@ -1,12 +1,21 @@
 "use client";
 
 import { useCategories } from "@/hooks/useCategories";
+import { useServiceCategories } from "@/hooks/useServiceCategories";
 import { CategoryManager } from "@/components/settings/CategoryManager";
+import { ServiceCategoryManager } from "@/components/settings/ServiceCategoryManager";
 import { CompanySettingsForm } from "@/components/settings/CompanySettings";
 import { Settings } from "lucide-react";
 
 export default function AyarlarPage() {
   const { categories, loading, add, update, remove } = useCategories();
+  const {
+    serviceCategories,
+    loading: scLoading,
+    add: scAdd,
+    update: scUpdate,
+    remove: scRemove,
+  } = useServiceCategories();
 
   return (
     <div className="p-6 max-w-3xl mx-auto">
@@ -25,13 +34,23 @@ export default function AyarlarPage() {
         {/* Company Settings */}
         <CompanySettingsForm />
 
-        {/* Category Manager */}
+        {/* Person Category Manager */}
         {!loading && (
           <CategoryManager
             categories={categories}
             onAdd={add}
             onUpdate={update}
             onDelete={remove}
+          />
+        )}
+
+        {/* Service Category Manager */}
+        {!scLoading && (
+          <ServiceCategoryManager
+            categories={serviceCategories}
+            onAdd={scAdd}
+            onUpdate={scUpdate}
+            onDelete={scRemove}
           />
         )}
       </div>

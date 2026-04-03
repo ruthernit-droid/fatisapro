@@ -9,6 +9,16 @@
   updatedAt: Date;
 }
 
+/** Proje hizmet kalemleri için ana kategori + alt kategoriler */
+export interface ServiceCategory {
+  id: string;
+  name: string;            // Ana kategori adı, ör. "Statik"
+  subcategories: string[]; // Alt kategori adları, ör. ["Kalıp İskele", "Betonarme"]
+  order: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export interface Person {
   id: string;
   name: string;

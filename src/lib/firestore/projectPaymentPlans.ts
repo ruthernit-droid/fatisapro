@@ -37,6 +37,11 @@ function toPaymentPlan(data: Record<string, unknown>, id: string): ProjectPaymen
   };
 }
 
+export async function getAllPaymentPlans(): Promise<ProjectPaymentPlan[]> {
+  const snap = await getDocs(collection(db, COL));
+  return snap.docs.map((d) => toPaymentPlan(d.data() as Record<string, unknown>, d.id));
+}
+
 export async function getPaymentPlans(projectId: string): Promise<ProjectPaymentPlan[]> {
   const q = query(collection(db, COL), where("projectId", "==", projectId));
   const snap = await getDocs(q);

@@ -34,6 +34,11 @@ function toExpense(data: Record<string, unknown>, id: string): ProjectExpense {
   };
 }
 
+export async function getAllExpenses(): Promise<ProjectExpense[]> {
+  const snap = await getDocs(collection(db, COL));
+  return snap.docs.map((d) => toExpense(d.data() as Record<string, unknown>, d.id));
+}
+
 export async function getExpenses(projectId: string): Promise<ProjectExpense[]> {
   const q = query(collection(db, COL), where("projectId", "==", projectId));
   const snap = await getDocs(q);
