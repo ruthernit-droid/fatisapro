@@ -169,6 +169,9 @@ export default function PersonDetailPage() {
       });
       lines.push("");
       lines.push(`Toplam: ${formatCurrency(asClientTotal)} | Tahsil: ${formatCurrency(asClientReceived)} | Alacak: ${formatCurrency(asClientOutstanding)}`);
+      if (asClientExpenseCredit > 0) {
+        lines.push(`Müşteri adına harcamalar (alacak): ${formatCurrency(asClientExpenseCredit)}`);
+      }
     }
 
     if (asMuелліfTotal > 0) {
@@ -222,7 +225,12 @@ export default function PersonDetailPage() {
     const plans = paymentPlansByProject[p.id] || [];
     return s + plans.filter((pl) => pl.isPaid).reduce((ps, pl) => ps + pl.paidAmount, 0);
   }, 0);
-  const asClientOutstanding = asClientTotal - asClientReceived;
+  // Harcamalar için alacak: müşteri adına yapılan masraflar
+  const asClientExpenseCredit = clientProjects.reduce((s, p) => {
+    const exps = expensesByProject[p.id] || [];
+    return s + exps.filter((e) => e.isPaid).reduce((es, e) => es + e.chargeToClient, 0);
+  }, 0);
+  const asClientOutstanding = asClientTotal - asClientReceived + asClientExpenseCredit;
 
   // Müellif olarak: toplam borç, ödenen, kalan
   const asMuелліfTotal = Object.values(serviceItemsByProject)

@@ -36,6 +36,7 @@ const navGroups = [
     items: [
       { label: "İşlemler", href: "/islemler", icon: Wallet },
       { label: "Raporlar", href: "/raporlar", icon: BarChart3 },
+      { label: "Kasa", href: "/kasa", icon: Building2 },
     ],
   },
   {

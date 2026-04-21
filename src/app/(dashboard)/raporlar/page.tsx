@@ -61,6 +61,9 @@ export default function RaporlarPage() {
   const [loading, setLoading] = useState(true);
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
+  const [projectStatusFilter, setProjectStatusFilter] = useState("");
+  const [personFilter, setPersonFilter] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("");
 
   useEffect(() => {
     Promise.all([

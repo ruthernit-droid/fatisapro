@@ -48,6 +48,8 @@ const DEFAULT_APP_SETTINGS: AppSettings = {
   kdvEnabled: false,
   kdvRate: 20,
   showCostInQuotes: false,
+  incomeCategories: ["Proje Geliri", "Danışmanlık Ücreti", "İzin Ücreti", "Ürün Satışı", "Diğer Gelir"],
+  expenseCategories: ["Alt Yüklenici", "Malzeme", "Ofis Gideri", "Vergi", "Maaş", "Yakıt", "Diğer Gider"],
   updatedAt: new Date(),
 };
 
@@ -59,6 +61,8 @@ export async function getAppSettings(): Promise<AppSettings> {
     kdvEnabled: (data.kdvEnabled as boolean) ?? false,
     kdvRate: (data.kdvRate as number) ?? 20,
     showCostInQuotes: (data.showCostInQuotes as boolean) ?? false,
+    incomeCategories: (data.incomeCategories as string[]) ?? DEFAULT_APP_SETTINGS.incomeCategories,
+    expenseCategories: (data.expenseCategories as string[]) ?? DEFAULT_APP_SETTINGS.expenseCategories,
     updatedAt: (data.updatedAt as Timestamp)?.toDate() || new Date(),
   };
 }

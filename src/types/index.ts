@@ -230,6 +230,8 @@ export interface AppSettings {
   kdvEnabled: boolean;       // KDV hesaplamaları aktif mi (varsayılan: false)
   kdvRate: number;           // KDV oranı % (varsayılan: 20)
   showCostInQuotes: boolean; // Tekliflerde birim maliyet göster (varsayılan: false)
+  incomeCategories: string[]; // Gelir kategorileri
+  expenseCategories: string[]; // Gider kategorileri
   updatedAt: Date;
 }
 
