@@ -49,6 +49,25 @@ import {
   TrendingUp, TrendingDown, Wallet, User,
   Receipt, CheckCircle, XCircle, Send, Flag,
 } from "lucide-react";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import {
+  useSortable,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 const STATUS_BADGE: Record<string, string> = {
   draft:     "bg-neutral-100 text-neutral-600 border-neutral-200",
@@ -59,10 +78,82 @@ const STATUS_BADGE: Record<string, string> = {
   cancelled: "bg-red-100 text-red-600 border-red-200",
 };
 
+interface SortableRowProps {
+  item: ProjectServiceItem;
+  index: number;
+  onEdit: (item: ProjectServiceItem) => void;
+  onDelete: (id: string) => void;
+  getPerson: (id?: string) => Person | undefined;
+}
+
+function SortableRow({ item, index, onEdit, onDelete, getPerson }: SortableRowProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: item.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  const muellif = getPerson(item.muellif);
+  const paid = item.paymentInstallments.filter((i) => i.isPaid).reduce((s, i) => s + i.amount, 0);
+  const remaining = item.cost - paid;
+
+  return (
+    <tr
+      ref={setNodeRef}
+      style={style}
+      className={cn(
+        "border-b border-neutral-50 hover:bg-neutral-50/50",
+        isDragging && "opacity-50 bg-neutral-100"
+      )}
+    >
+      <td className="px-4 py-2.5 text-xs text-neutral-400">
+        <div className="flex items-center gap-2">
+          <button
+            {...attributes}
+            {...listeners}
+            className="cursor-grab active:cursor-grabbing text-neutral-400 hover:text-neutral-600"
+            title="Sürükle"
+          >
+            ⋮⋮
+          </button>
+          {item.order}
+        </div>
+      </td>
+      <td className="px-4 py-2.5 font-medium text-neutral-800">{item.serviceName}</td>
+      <td className="px-4 py-2.5">{muellif ? <Link href={`/kisiler/${muellif.id}`} className="text-xs text-indigo-600 hover:underline">{muellif.name}</Link> : <span className="text-xs text-neutral-400">—</span>}</td>
+      <td className="px-4 py-2.5 text-right text-xs font-medium">{item.cost > 0 ? formatCurrency(item.cost) : <span className="text-neutral-300">—</span>}</td>
+      <td className="px-4 py-2.5 text-right text-xs text-green-600">{paid > 0 ? formatCurrency(paid) : <span className="text-neutral-300">—</span>}</td>
+      <td className="px-4 py-2.5 text-right text-xs">{item.cost > 0 ? <span className={remaining > 0 ? "text-red-500 font-medium" : "text-green-600"}>{formatCurrency(remaining)}</span> : <span className="text-neutral-300">—</span>}</td>
+      <td className="px-4 py-2.5"><span className={cn("text-[10px] px-2 py-0.5 rounded-full border", SERVICE_ITEM_STATUS_COLORS[item.status])}>{SERVICE_ITEM_STATUS_LABELS[item.status]}</span></td>
+      <td className="px-4 py-2.5">
+        <div className="flex items-center gap-1 justify-end">
+          <button onClick={() => onEdit(item)} className="p-1 text-neutral-400 hover:text-indigo-600 transition-colors"><Pencil className="h-3.5 w-3.5" /></button>
+          <button onClick={() => onDelete(item.id)} className="p-1 text-neutral-400 hover:text-red-500 transition-colors"><Trash2 className="h-3.5 w-3.5" /></button>
+        </div>
+      </td>
+    </tr>
+  );
+}
+
 export default function ProjectDetailPage() {
   const params = useParams();
   const router = useRouter();
   const projectId = params.id as string;
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   const [project, setProject] = useState<Project | null>(null);
   const [serviceItems, setServiceItems] = useState<ProjectServiceItem[]>([]);
@@ -88,6 +179,26 @@ export default function ProjectDetailPage() {
   const [addingExpense, setAddingExpense] = useState(false);
   const [editingExpense, setEditingExpense] = useState<ProjectExpense | null>(null);
   const [expenseForm, setExpenseForm] = useState({ description: "", cost: 0, chargeToClient: 0, notes: "" });
+
+  function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+    if (over && active.id !== over.id) {
+      const oldIndex = serviceItems.findIndex((item) => item.id === active.id);
+      const newIndex = serviceItems.findIndex((item) => item.id === over.id);
+      const newItems = arrayMove(serviceItems, oldIndex, newIndex);
+      // Update order numbers
+      const updatedItems = newItems.map((item, index) => ({ ...item, order: index + 1 }));
+      setServiceItems(updatedItems);
+      // Save to database
+      updatedItems.forEach(async (item) => {
+        try {
+          await updateServiceItem(item.id, { order: item.order });
+        } catch (e) {
+          console.error("Order update failed", e);
+        }
+      });
+    }
+  }
 
   const loadAll = useCallback(async () => {
     try {
@@ -331,42 +442,37 @@ export default function ProjectDetailPage() {
           <Button size="sm" variant="outline" onClick={handleAddCustomItem}><Plus className="h-3.5 w-3.5" /> Satir Ekle</Button>
         </div>
         <div className="overflow-x-auto">
-          <table className="w-full text-sm min-w-[700px]">
-            <thead><tr className="border-b border-neutral-100 bg-neutral-50">
-              <th className="text-left px-4 py-2.5 text-xs font-medium text-neutral-500 w-8">#</th>
-              <th className="text-left px-4 py-2.5 text-xs font-medium text-neutral-500">Hizmet</th>
-              <th className="text-left px-4 py-2.5 text-xs font-medium text-neutral-500">Muellif</th>
-              <th className="text-right px-4 py-2.5 text-xs font-medium text-neutral-500">Maliyet</th>
-              <th className="text-right px-4 py-2.5 text-xs font-medium text-neutral-500">Odenen</th>
-              <th className="text-right px-4 py-2.5 text-xs font-medium text-neutral-500">Kalan</th>
-              <th className="text-left px-4 py-2.5 text-xs font-medium text-neutral-500">Durum</th>
-              <th className="px-4 py-2.5 w-16"></th>
-            </tr></thead>
-            <tbody>
-              {serviceItems.map((item) => {
-                const muellif = getPerson(item.muellif);
-                const paid = item.paymentInstallments.filter((i) => i.isPaid).reduce((s, i) => s + i.amount, 0);
-                const remaining = item.cost - paid;
-                return (
-                  <tr key={item.id} className="border-b border-neutral-50 hover:bg-neutral-50/50">
-                    <td className="px-4 py-2.5 text-xs text-neutral-400">{item.order}</td>
-                    <td className="px-4 py-2.5 font-medium text-neutral-800">{item.serviceName}</td>
-                    <td className="px-4 py-2.5">{muellif ? <Link href={`/kisiler/${muellif.id}`} className="text-xs text-indigo-600 hover:underline">{muellif.name}</Link> : <span className="text-xs text-neutral-400">—</span>}</td>
-                    <td className="px-4 py-2.5 text-right text-xs font-medium">{item.cost > 0 ? formatCurrency(item.cost) : <span className="text-neutral-300">—</span>}</td>
-                    <td className="px-4 py-2.5 text-right text-xs text-green-600">{paid > 0 ? formatCurrency(paid) : <span className="text-neutral-300">—</span>}</td>
-                    <td className="px-4 py-2.5 text-right text-xs">{item.cost > 0 ? <span className={remaining > 0 ? "text-red-500 font-medium" : "text-green-600"}>{formatCurrency(remaining)}</span> : <span className="text-neutral-300">—</span>}</td>
-                    <td className="px-4 py-2.5"><span className={cn("text-[10px] px-2 py-0.5 rounded-full border", SERVICE_ITEM_STATUS_COLORS[item.status])}>{SERVICE_ITEM_STATUS_LABELS[item.status]}</span></td>
-                    <td className="px-4 py-2.5">
-                      <div className="flex items-center gap-1 justify-end">
-                        <button onClick={() => openEditItem(item)} className="p-1 text-neutral-400 hover:text-indigo-600 transition-colors"><Pencil className="h-3.5 w-3.5" /></button>
-                        <button onClick={() => handleDeleteItem(item.id)} className="p-1 text-neutral-400 hover:text-red-500 transition-colors"><Trash2 className="h-3.5 w-3.5" /></button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-            <tfoot><tr className="bg-neutral-50 border-t border-neutral-200">
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+          >
+            <table className="w-full text-sm min-w-[700px]">
+              <thead><tr className="border-b border-neutral-100 bg-neutral-50">
+                <th className="text-left px-4 py-2.5 text-xs font-medium text-neutral-500 w-8">#</th>
+                <th className="text-left px-4 py-2.5 text-xs font-medium text-neutral-500">Hizmet</th>
+                <th className="text-left px-4 py-2.5 text-xs font-medium text-neutral-500">Muellif</th>
+                <th className="text-right px-4 py-2.5 text-xs font-medium text-neutral-500">Maliyet</th>
+                <th className="text-right px-4 py-2.5 text-xs font-medium text-neutral-500">Odenen</th>
+                <th className="text-right px-4 py-2.5 text-xs font-medium text-neutral-500">Kalan</th>
+                <th className="text-left px-4 py-2.5 text-xs font-medium text-neutral-500">Durum</th>
+                <th className="px-4 py-2.5 w-16"></th>
+              </tr></thead>
+              <tbody>
+                <SortableContext items={serviceItems.map(item => item.id)} strategy={verticalListSortingStrategy}>
+                  {serviceItems.map((item, index) => (
+                    <SortableRow
+                      key={item.id}
+                      item={item}
+                      index={index}
+                      onEdit={openEditItem}
+                      onDelete={handleDeleteItem}
+                      getPerson={getPerson}
+                    />
+                  ))}
+                </SortableContext>
+              </tbody>
+              <tfoot><tr className="bg-neutral-50 border-t border-neutral-200">
               <td colSpan={3} className="px-4 py-3 text-xs font-semibold text-neutral-700">TOPLAM</td>
               <td className="px-4 py-3 text-right text-xs font-bold text-neutral-900">{formatCurrency(totalCost)}</td>
               <td className="px-4 py-3 text-right text-xs font-bold text-green-600">{formatCurrency(totalPaidToMuellif)}</td>
@@ -374,6 +480,7 @@ export default function ProjectDetailPage() {
               <td colSpan={2}></td>
             </tr></tfoot>
           </table>
+          </DndContext>
         </div>
       </div>
 

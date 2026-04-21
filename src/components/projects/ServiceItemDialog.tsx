@@ -105,6 +105,14 @@ export default function ServiceItemDialog({
     e.preventDefault();
     setSaving(true);
     try {
+      // Clean paymentInstallments to remove undefined fields
+      const cleanInstallments = form.paymentInstallments.map(inst => {
+        const cleaned: any = { id: inst.id, amount: inst.amount, isPaid: inst.isPaid };
+        if (inst.dueDate) cleaned.dueDate = inst.dueDate;
+        if (inst.paidDate) cleaned.paidDate = inst.paidDate;
+        if (inst.notes) cleaned.notes = inst.notes;
+        return cleaned;
+      });
       await onSave({
         serviceName: form.serviceName,
         muellif: form.muellif || undefined,
@@ -112,7 +120,7 @@ export default function ServiceItemDialog({
         plannedPaymentDate: form.plannedPaymentDate || undefined,
         status: form.status,
         notes: form.notes || undefined,
-        paymentInstallments: form.paymentInstallments,
+        paymentInstallments: cleanInstallments,
       });
       onClose();
     } finally {

@@ -39,6 +39,11 @@ export default function QuoteTemplateSelectorPage() {
   const [saving, setSaving]       = useState(false);
   const [sent, setSent]           = useState(false);
   const [quoteNo]                 = useState(genQuoteNo);
+  const [quoteSettings, setQuoteSettings] = useState({
+    kdvEnabled: false,
+    kdvRate: 20,
+    showCost: false,
+  });
 
   const loadData = useCallback(async () => {
     try {
@@ -55,6 +60,11 @@ export default function QuoteTemplateSelectorPage() {
       setClient(persons.find((p) => p.id === proj.clientId) || null);
       setSettings(cfg);
       setAppSettings(appCfg);
+      setQuoteSettings({
+        kdvEnabled: appCfg?.kdvEnabled ?? false,
+        kdvRate: appCfg?.kdvRate ?? 20,
+        showCost: appCfg?.showCostInQuotes ?? false,
+      });
     } catch {
       toast.error("Veriler yüklenemedi");
     } finally {
@@ -90,9 +100,9 @@ export default function QuoteTemplateSelectorPage() {
         name: i.serviceName,
         price: appSettings?.showCostInQuotes ? (i.cost || 0) : 0,
       })),
-      showCost:     appSettings?.showCostInQuotes ?? false,
-      kdvEnabled:   appSettings?.kdvEnabled ?? false,
-      kdvRate:      appSettings?.kdvRate ?? 20,
+      showCost:     quoteSettings.showCost,
+      kdvEnabled:   quoteSettings.kdvEnabled,
+      kdvRate:      quoteSettings.kdvRate,
       total,
     };
     const encoded = btoa(encodeURIComponent(JSON.stringify(data)));
@@ -192,6 +202,50 @@ export default function QuoteTemplateSelectorPage() {
             {serviceItems.map((i) => i.serviceName).join(", ")}
           </p>
         )}
+      </div>
+
+      {/* Teklif Ayarları */}
+      <div className="rounded-xl bg-white border border-neutral-200 p-4">
+        <h2 className="text-sm font-semibold text-neutral-900 mb-3">Teklif Ayarları</h2>
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <div>
+              <label className="text-sm font-medium text-neutral-700">KDV Göster</label>
+              <p className="text-xs text-neutral-500">Teklifte KDV hesaplaması ve gösterimi</p>
+            </div>
+            <input
+              type="checkbox"
+              checked={quoteSettings.kdvEnabled}
+              onChange={(e) => setQuoteSettings(s => ({ ...s, kdvEnabled: e.target.checked }))}
+              className="w-4 h-4 accent-indigo-600"
+            />
+          </div>
+          {quoteSettings.kdvEnabled && (
+            <div className="flex items-center gap-3">
+              <label className="text-sm font-medium text-neutral-700 w-20">KDV Oranı (%)</label>
+              <input
+                type="number"
+                min={0}
+                max={100}
+                value={quoteSettings.kdvRate}
+                onChange={(e) => setQuoteSettings(s => ({ ...s, kdvRate: parseFloat(e.target.value) || 0 }))}
+                className="w-20 px-2 py-1 border border-neutral-200 rounded text-sm"
+              />
+            </div>
+          )}
+          <div className="flex items-center justify-between">
+            <div>
+              <label className="text-sm font-medium text-neutral-700">Birim Maliyet Göster</label>
+              <p className="text-xs text-neutral-500">Hizmet kalemlerinin maliyetlerini göster</p>
+            </div>
+            <input
+              type="checkbox"
+              checked={quoteSettings.showCost}
+              onChange={(e) => setQuoteSettings(s => ({ ...s, showCost: e.target.checked }))}
+              className="w-4 h-4 accent-indigo-600"
+            />
+          </div>
+        </div>
       </div>
 
       {/* Template cards */}
