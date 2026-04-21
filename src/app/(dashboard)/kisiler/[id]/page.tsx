@@ -9,6 +9,7 @@ import {
   Project,
   ProjectServiceItem,
   ProjectPaymentPlan,
+  ProjectExpense,
   PROJECT_STATUS_LABELS,
   PROJECT_TYPE_LABELS,
   ProjectType,
@@ -17,6 +18,7 @@ import { getPerson } from "@/lib/firestore/persons";
 import { getProjects } from "@/lib/firestore/projects";
 import { getServiceItems } from "@/lib/firestore/projectServiceItems";
 import { getPaymentPlans } from "@/lib/firestore/projectPaymentPlans";
+import { getExpenses } from "@/lib/firestore/projectExpenses";
 import { getPersons } from "@/lib/firestore/persons";
 import { useCategories } from "@/hooks/useCategories";
 import { useProjectTypes } from "@/hooks/useProjectTypes";
@@ -45,6 +47,11 @@ export default function PersonDetailPage() {
   // (Müellif olduğu hizmet kalemleri)
   const [serviceItemsByProject, setServiceItemsByProject] = useState<
     Record<string, ProjectServiceItem[]>
+  >({});
+
+  // (İşveren olduğu projeler için harcamalar)
+  const [expensesByProject, setExpensesByProject] = useState<
+    Record<string, ProjectExpense[]>
   >({});
 
   const { categories } = useCategories();
@@ -76,7 +83,7 @@ export default function PersonDetailPage() {
       const allServiceItems: ProjectServiceItem[] = [];
       const uniqueProjectIds = new Set(allProj.map((pr) => pr.id));
 
-      const [allPaymentPlans, allItems] = await Promise.all([
+      const [allPaymentPlans, allItems, allExpenses] = await Promise.all([
         Promise.all(
           clientProjects.map((pr) =>
             getPaymentPlans(pr.id).then((plans) => ({ projectId: pr.id, plans }))
@@ -85,6 +92,11 @@ export default function PersonDetailPage() {
         Promise.all(
           Array.from(uniqueProjectIds).map((pid) =>
             getServiceItems(pid).then((items) => ({ projectId: pid, items }))
+          )
+        ),
+        Promise.all(
+          clientProjects.map((pr) =>
+            getExpenses(pr.id).then((expenses) => ({ projectId: pr.id, expenses }))
           )
         ),
       ]);
@@ -105,6 +117,12 @@ export default function PersonDetailPage() {
         }
       });
       setServiceItemsByProject(siByProj);
+
+      const expByProj: Record<string, ProjectExpense[]> = {};
+      allExpenses.forEach(({ projectId, expenses }) => {
+        expByProj[projectId] = expenses;
+      });
+      setExpensesByProject(expByProj);
 
       // Ilgili tüm projeleri (hem işveren hem müellif olarak) topla
       const muellifProjectIds = new Set(Object.keys(siByProj));

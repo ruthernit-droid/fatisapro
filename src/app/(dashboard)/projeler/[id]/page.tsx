@@ -138,8 +138,15 @@ export default function ProjectDetailPage() {
   }
   function openEditItem(item: ProjectServiceItem) { setEditingItem(item); setShowItemDialog(true); }
   async function handleSaveItem(data: Partial<Omit<ProjectServiceItem, "id" | "createdAt" | "updatedAt">>) {
-    if (editingItem) { await updateServiceItem(editingItem.id, data); toast.success("Hizmet kalemi guncellendi"); }
-    await loadAll();
+    try {
+      if (!editingItem) { toast.error("Hizmet kalemi seçilmedi"); return; }
+      await updateServiceItem(editingItem.id, data);
+      toast.success("Hizmet kalemi guncellendi");
+      await loadAll();
+    } catch (e) {
+      console.error(e);
+      toast.error("Hizmet kalemi kaydedilemedi. Lütfen tekrar deneyin.");
+    }
   }
   async function handleDeleteItem(id: string) {
     if (!confirm("Bu hizmet kalemini silmek istediginizden emin misiniz?")) return;
@@ -151,10 +158,15 @@ export default function ProjectDetailPage() {
     await loadAll();
   }
   async function handleAddPaymentPlan() {
-    if (!paymentForm.title.trim() || paymentForm.amount <= 0) { toast.error("Baslik ve tutar zorunludur."); return; }
-    await addPaymentPlan({ projectId, title: paymentForm.title, amount: paymentForm.amount, dueDate: paymentForm.dueDate || undefined, paidAmount: 0, isPaid: false, order: paymentPlans.length + 1 });
-    setPaymentForm({ title: "", amount: 0, dueDate: "" }); setAddingPayment(false);
-    toast.success("Odeme plani eklendi"); await loadAll();
+    try {
+      if (!paymentForm.title.trim() || paymentForm.amount <= 0) { toast.error("Baslik ve tutar zorunludur."); return; }
+      await addPaymentPlan({ projectId, title: paymentForm.title, amount: paymentForm.amount, dueDate: paymentForm.dueDate || undefined, paidAmount: 0, isPaid: false, order: paymentPlans.length + 1 });
+      setPaymentForm({ title: "", amount: 0, dueDate: "" }); setAddingPayment(false);
+      toast.success("Odeme plani eklendi"); await loadAll();
+    } catch (e) {
+      console.error(e);
+      toast.error("Ödeme planı eklenemedi. Lütfen tekrar deneyin.");
+    }
   }
   async function togglePaymentPaid(plan: ProjectPaymentPlan) {
     const newPaid = !plan.isPaid;
@@ -174,15 +186,20 @@ export default function ProjectDetailPage() {
     setAddingExpense(true);
   }
   async function handleSaveExpense() {
-    if (!expenseForm.description.trim()) { toast.error("Aciklama zorunludur."); return; }
-    if (editingExpense) {
-      await updateExpense(editingExpense.id, { description: expenseForm.description, cost: expenseForm.cost, chargeToClient: expenseForm.chargeToClient, notes: expenseForm.notes || undefined });
-      toast.success("Harcama guncellendi");
-    } else {
-      await addExpense({ projectId, description: expenseForm.description, cost: expenseForm.cost, chargeToClient: expenseForm.chargeToClient, isPaid: false, notes: expenseForm.notes || undefined });
-      toast.success("Harcama eklendi");
+    try {
+      if (!expenseForm.description.trim()) { toast.error("Aciklama zorunludur."); return; }
+      if (editingExpense) {
+        await updateExpense(editingExpense.id, { description: expenseForm.description, cost: expenseForm.cost, chargeToClient: expenseForm.chargeToClient, notes: expenseForm.notes || undefined });
+        toast.success("Harcama guncellendi");
+      } else {
+        await addExpense({ projectId, description: expenseForm.description, cost: expenseForm.cost, chargeToClient: expenseForm.chargeToClient, isPaid: false, notes: expenseForm.notes || undefined });
+        toast.success("Harcama eklendi");
+      }
+      setAddingExpense(false); setEditingExpense(null); await loadAll();
+    } catch (e) {
+      console.error(e);
+      toast.error("Harcama kaydedilemedi. Lütfen tekrar deneyin.");
     }
-    setAddingExpense(false); setEditingExpense(null); await loadAll();
   }
   async function toggleExpensePaid(exp: ProjectExpense) {
     const newPaid = !exp.isPaid;
